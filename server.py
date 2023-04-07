@@ -1,9 +1,15 @@
-from bottle import app, request, response
+from bottle import Bottle
+from JwtAuth import JwtAuth
+from config import issuer, audience
+
 from bottle.ext import sqlite
 from bottle_cors_plugin import cors_plugin
 import json
 
-app = app()
+app = Bottle()
+# Create a restriction on any route with a prefix of '/api/'
+aud=JwtAuth(jwt_config={issuer=issuer, audience=audience, url_prefix='/api/')
+
 app.install(sqlite.Plugin(dbfile='fahrplan.sqlite3'))
 app.install(cors_plugin('*'))
 
