@@ -12,7 +12,7 @@ app.install(sqlite.Plugin(dbfile='fahrplan.sqlite3'))
 app.install(cors_plugin('*'))
 
 # Create a restriction on any route with a prefix of '/api/'
-aud=JwtAuth(jwt_config={issuer = issuer, audience=audience, url_prefix='/api/')
+aud=JwtAuth(jwt_config={issuer = issuer, audience=audience, url_prefix='/api/'})
 
 @app.route('/api2/users', method='GET')
 def users(db):  
