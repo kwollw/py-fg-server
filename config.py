@@ -8,3 +8,5 @@ jwt_config = {
     'iss': 'urn:myissuer',
     'ttl': 3600 
 }
+
+salt = 'kjdshj98&89)(&/)(S'

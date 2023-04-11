@@ -1,10 +1,11 @@
-from bottle import Bottle
+from bottle import *
 from JwtAuth import JwtAuth
-from config import issuer, audience, jwt_config 
+from config import issuer, audience, jwt_config, salt
 
 from bottle.ext import sqlite
 from bottle_cors_plugin import cors_plugin
 import json
+import hashlib
 
 app = Bottle()
 app.install(sqlite.Plugin(dbfile='fahrplan.sqlite3'))
@@ -13,23 +14,20 @@ app.install(cors_plugin('*'))
 
 
 # Create a restriction on any route with a prefix of '/api/'
-aud=JwtAuth(jwt_config = jwt_config, issuer=issuer, audience=audience, url_prefix='/api/')
+# aud=JwtAuth(jwt_config = jwt_config, issuer=issuer, audience=audience, url_prefix='/')
 
-app.install(aud)
+# app.install(aud)
 
 @app.route('/api/users/authenticate', method='POST')
-def authenticat(db):  
-  cur = db.execute('select * from members where active = "true" order by sirname')
-  result = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
-  response.content_type = 'application/json'
-  return json.dumps({'message': 'success', 'users': result})
+def authenticate(db):  
+  user = request.json['username']
+  password = hashlib.sha1((request.json['password'] + salt).encode()).hexdigest()
+  print(user, password)
+  cur = db.execute('select * from members where (user like ? or mail like ?) and password_sha1 = ?',[user, user, password])
+  valid_user = cur.fetchall()
+  print(valid_user)
 
-@app.route('/api/test', method='GET')
-def authenticat(db):  
-  cur = db.execute('select * from members where active = "true" order by sirname')
-  result = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
-  response.content_type = 'application/json'
-  return json.dumps({'message': 'success', 'users': result})
+
 
 
 @app.route('/api/users', method='GET')
