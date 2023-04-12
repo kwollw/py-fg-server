@@ -1,5 +1,5 @@
 [Unit]
-Description=bottle Server für Fahrgemeinschaft ( install with: ln -s /var/log/bottle/fg-bottle.service /etc/systemd/system) K. Wollweber 12. 04. 2023
+Description=bottle Server für Fahrgemeinschaft ( install with: ln -s /var/www/bottle/fg-bottle.service /etc/systemd/system) K. Wollweber 12. 04. 2023
 
 [Service]
 Type=simple
