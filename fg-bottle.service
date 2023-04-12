@@ -1,0 +1,12 @@
+[Unit]
+Description=bottle Server für Fahrgemeinschaft ( install with: ln -s /var/log/bottle/fg-bottle.service /etc/systemd/system) K. Wollweber 12. 04. 2023
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/bottle
+StandardOutput=append:/var/www/bottle/log1.log
+StandardError=append:/var/www/bottle/log2.log
+ExecStart=/usr/bin/python3 ./server.py 
+
+[Install]
+WantedBy=multi-user.target
