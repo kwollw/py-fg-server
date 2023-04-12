@@ -8,6 +8,7 @@ from bottle_cors_plugin import cors_plugin
 import json
 import hashlib
 
+
 db = sqlite3.connect('fahrplan.sqlite3')
 db.row_factory = sqlite3.Row
 
