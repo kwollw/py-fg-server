@@ -2,15 +2,11 @@ from bottle import *
 import jwt
 from config import issuer, audience, jwt_config, salt
 
-import sqlite3
-
 from bottle_cors_plugin import cors_plugin
 import json
-import hashlib
 
+import db
 
-db = sqlite3.connect('fahrplan.sqlite3')
-db.row_factory = sqlite3.Row
 
 install(cors_plugin('*'))
 
@@ -22,34 +18,24 @@ install(cors_plugin('*'))
 
 @route('/api/users/authenticate', method='POST')
 def authenticate():  
-  user = request.json['username']
-  password = hashlib.sha1((request.json['password'] + salt).encode()).hexdigest()
-  cur = db.execute('select * from members where (user like ? or mail like ?) and password_sha1 = ?',[user, user, password])
-  valid_user = cur.fetchall()
-  if len(valid_user) == 1:
-    user = {k: valid_user[0][k] for k in valid_user[0].keys()}
-    del user["password_sha1"]
-    print ("login ", user["user"])
-    token = jwt.encode({"some": "payload"}, jwt_config["key"], algorithm="HS256")
-    response.headers['Content-Type'] = 'application/json'
-    return json.dumps({ "message":"success","token":token, "data":user})
+  user = db.getlogin(request.json['username'], request.json['password'])
+  response.content_type = 'application/json'
+  if (len(user)>0):
+    token = jwt.encode({"user": user["user"]}, jwt_config["key"], algorithm="HS256")
+    return json.dumps({ "message":"success", "token":token, "data":user})
   else:
-    response.headers['Content-Type'] = 'application/json'
     return json.dumps({ "message":"failed"})
-
 
 @route('/api/users', method='GET')
 def users():  
-  cur = db.execute('select * from members where active = "true" order by sirname')
-  result = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
+  groupID = "pus" # to be parameterized
+  userlist = db.active_users(groupID)
   response.content_type = 'application/json'
-  return json.dumps({'message': 'success', 'users': result})
+  return json.dumps({'message': 'success', 'data': userlist})
 
 @route('/api/schedule', method='POST')
 def schedule():  
-  data = request.json
-  cur = db.execute("select * from schedule where Date = :date", data)
-  result = [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
+  result = db.schedule(request.json['date'])
   response.content_type = 'application/json'
   return json.dumps({'message': 'success', 'data': result})
 
