@@ -4,6 +4,7 @@ Description=bottle Server für Fahrgemeinschaft ( install with: ln -s /var/www/b
 [Service]
 Type=simple
 WorkingDirectory=/var/www/bottle
+Environment=PYTHONUNBUFFERED=1
 StandardOutput=append:/var/www/bottle/log1.log
 StandardError=append:/var/www/bottle/log2.log
 ExecStart=/usr/bin/python3 ./server.py 
