@@ -24,16 +24,16 @@ install(cors_plugin('*'))
 def authenticate():  
   user = request.json['username']
   password = hashlib.sha1((request.json['password'] + salt).encode()).hexdigest()
-  print(user, password)
   cur = db.execute('select * from members where (user like ? or mail like ?) and password_sha1 = ?',[user, user, password])
   valid_user = cur.fetchall()
   if len(valid_user) == 1:
-    print('successful login for ', valid_user[0]['user'], valid_user[0]['name'], valid_user[0]['groupID'])
+    user = {k: valid_user[0][k] for k in valid_user[0].keys()}
+    del user["password_sha1"]
+    print ("login ", user["user"])
     token = jwt.encode({"some": "payload"}, jwt_config["key"], algorithm="HS256")
     response.headers['Content-Type'] = 'application/json'
-    return json.dumps({ "message":"success","token":token, "data":valid_user[0]['name']})
+    return json.dumps({ "message":"success","token":token, "data":user})
   else:
-    print('login failed')
     response.headers['Content-Type'] = 'application/json'
     return json.dumps({ "message":"failed"})
 
