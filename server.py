@@ -28,10 +28,10 @@ def authenticate():
 
 @route('/api/users', method='GET')
 def users():  
-  groupID = "pus" # to be parameterized
+  groupID = "PUS" # to be parameterized
   userlist = db.active_users(groupID)
   response.content_type = 'application/json'
-  return json.dumps({'message': 'success', 'data': userlist})
+  return json.dumps({'message': 'success', 'users': userlist})
 
 @route('/api/schedule', method='POST')
 def schedule():  
