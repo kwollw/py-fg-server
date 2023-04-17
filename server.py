@@ -6,7 +6,7 @@ from bottle_cors_plugin import cors_plugin
 import json
 
 import db
-
+import z3solver as z3
 
 install(cors_plugin('*'))
 
@@ -34,7 +34,7 @@ def users():
   return json.dumps({'message': 'success', 'users': userlist})
 
 @route('/api/schedule', method='POST')
-def schedule():  
+def schedule():
   result = db.schedule(request.json['date'])
   response.content_type = 'application/json'
   return json.dumps({'message': 'success', 'data': result})
