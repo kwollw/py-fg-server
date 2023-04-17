@@ -6,7 +6,6 @@ from bottle_cors_plugin import cors_plugin
 import json
 
 import db
-import z3solver as z3
 
 install(cors_plugin('*'))
 
