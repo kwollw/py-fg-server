@@ -38,8 +38,6 @@ def schedule(date):
       delays = []
       for slot in slots_to:
         delay = minute_diff(slot['time_to'], req['time_to'])
-        if index == 16:
-          print(req['time_to'], slot['time_to'], delay)
         if (req['driver_status'] == "M" or delay <= req['time_to_max_delay']) and delay >= 0:
           delays.append(delay_to[index] == delay)
       a.append(Or (delays))
