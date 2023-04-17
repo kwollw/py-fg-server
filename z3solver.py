@@ -1,88 +1,72 @@
 from z3 import *
 import db
 
+# Zeit seit 00:00 Uhr in Minuten:
+def minute(time):
+  t = time.split(":")
+  return int(t[0])*60 + int(t[1])
 
-def get_slots(requests,key):
-  slots = set(map(lambda x: x[key], requests))
-  slots.discard('')
-  slots = list(map(lambda x: {key: x, "drives": [], "rides": []}, slots))
-  return sorted(slots, key=lambda k: k[key])
+def time(minute):
+  return str(minute // 60).zfill(2) + ":" + str(minute % 60).zfill(2)
 
-def minute_diff(fro,to):
-  f = fro.split(":")
-  t = to.split(":")
-  return int(t[0])*60 + int(t[1]) - (int(f[0])*60 + int(f[1]))
+# Fahrtkosten:
+def drive_costs(req): 
+  return 1000 + req['passengers_count']-req['rides_count']
 
 def schedule(date):
-  requests = db.getactive_requests(date)
-  #Pseudofahrer zur Aufnahme nicht erfüllbarer Mitfahrer:
-  requests.append({'user': 'NULL', 'driver_status': 'F', 'time_to': '0:00', 'time_to_max_delay': 0, 'max_passengers_to': 1000, 'time_fro': '24:00', 'time_fro_max_delay': 0, 'max_passengers_fro': 1000, 'passengers_count': 0, 'rides_count': 0})
-  slots_to = get_slots(requests,"time_to")
-  slots_fro = get_slots(requests,"time_fro")
-
-  drive = [ Int("drive_%s" % (i)) for i in range(len(requests))]
-  delay_to = [ Int("delay_to_%s" % (i)) for i in range(len(requests))]
-  delay_fro = [ Int("delay_fro_%s" % (i)) for i in range(len(requests))]
-
-
-  a = []
-  for index, req in enumerate(requests):
-    cost = max(5*(req['passengers_count']-req['rides_count'])+1000, 500)
-    if req["driver_status"]=="F":
-      a.append(drive[index] == cost)
-    elif req["driver_status"]=="M":
-      a.append(drive[index] == 0)
-    else:
-      a.append(Or(drive[index]== 0, drive[index] == cost))
-    if req['time_to'] != "":
-      delays = []
-      for slot in slots_to:
-        delay = minute_diff(slot['time_to'], req['time_to'])
-        if (req['driver_status'] == "M" or delay <= req['time_to_max_delay']) and delay >= 0:
-          delays.append(delay_to[index] == delay)
-      a.append(Or (delays))
-    if req['time_fro'] != "":
-      delays = []
-      for slot in slots_fro:
-        delay = minute_diff(req['time_fro'], slot['time_fro'])
-        if (req['driver_status'] == "M" or delay <= req['time_to_max_delay']) and delay >= 0:
-          delays.append(delay_fro[index] == delay)
-      a.append(Or(delays))
-
-
-  for slot in slots_to:
-    seats = []
-    for index, req in enumerate(requests):
-      if req['time_to'] != "":
-        delay = minute_diff(slot['time_to'],req['time_to'])
-        if (req['driver_status'] == "M" or delay <= req['time_to_max_delay']) and delay >= 0:
-          seats.append(If(delay_to[index] == delay, If(drive[index] == 0, -1, req['max_passengers_to']), 0))
-    a.append(Sum(seats) >= 0)
-
-  for slot in slots_fro:
-    seats = []
-    for index, req in enumerate(requests):
-      if req['time_fro'] != "":
-        delay = minute_diff(req['time_fro'],slot['time_fro'])
-        if (req['driver_status'] == "M" or delay <= req['time_fro_max_delay']) and delay >= 0:
-          seats.append(If(delay_fro[index] == delay, If(drive[index] == 0, -1, req['max_passengers_fro']), 0))
-    a.append(Sum(seats) >= 0)
-
-  cost = Int('cost')
-
+  req = db.getactive_requests(date)
+  drive_cost = IntVector('drive_cost', len(req))
+  time_to = IntVector('time_to', len(req))
+  time_fro =  IntVector('time_fro', len(req))
+  my_drive_to = IntVector('my_drive_to', len(req))
+  my_drive_fro = IntVector('my_drive_fro', len(req))
+  
+  
   opt = Optimize()
-  opt.add(a)
-  opt.add(cost == Sum(drive) + Sum(delay_to) + Sum(delay_fro))
-  opt.minimize(cost)
+  # Fahrtkosten:
+  opt.add([ drive_cost[i] == drive_costs(req[i]) for i in range(len(req)) if req[i]["driver_status"]=="F" ])
+  opt.add([ drive_cost[i] == 0 for i in range(len(req)) if req[i]["driver_status"]=="M" ])
+  opt.add([ (Or(drive_cost[i] == 0, drive_cost[i] == drive_costs(req[i]))) for i in range(len(req)) if req[i]["driver_status"]=="FM" ])
+
+  # Fahrtzeiten:
+  opt.add([ And(time_to[i] >= minute(req[i]['time_to']) - req[i]['time_to_max_delay'], time_to[i]<= minute(req[i]['time_to'])) for i in range(len(req)) if req[i]["time_to"] != "" ])
+  opt.add([ And(time_fro[i] >= minute(req[i]['time_fro']) , time_fro[i]<= minute(req[i]['time_fro']) + req[i]['time_fro_max_delay']) for i in range(len(req)) if req[i]["time_fro"] != "" ])
+  
+  # Fahrer fahren ihr Fahrzeug, Mitfahrer fahren in anderem Fahrzeug
+  opt.add([ And(my_drive_to[i] >= 0, my_drive_to[i] < len(req)) for i in range(len(req)) if req[i]["time_to"] != "" ])
+  opt.add([ If(drive_cost[i] > 0, my_drive_to[i] == i, my_drive_to[i] != i) for i in range(len(req)) if req[i]["time_to"] != "" ])
+  
+  opt.add([ And(my_drive_fro[i] >= 0, my_drive_fro[i] < len(req)) for i in range(len(req)) if req[i]["time_fro"] != "" ])
+  opt.add([ If(drive_cost[i] > 0, my_drive_fro[i] == i, my_drive_fro[i] != i) for i in range(len(req)) if req[i]["time_fro"] != "" ])
+
+  # Relation Fahrer <=> Mitfahrer:
+  opt.add([ Implies(my_drive_to[rider] == driver, And(drive_cost[driver] > 0, drive_cost[rider] == 0, time_to[driver] == time_to[rider])) for driver in range(len(req)) for rider in range(len(req)) if driver != rider ])
+  opt.add([ Implies(my_drive_fro[rider] == driver, And(drive_cost[driver] > 0, drive_cost[rider] == 0, time_fro[driver] == time_fro[rider])) for driver in range(len(req)) for rider in range(len(req)) if driver != rider ])
+
+  # Beschränkung der Plätze in einem Fahrzeug: 
+  # opt.add(If(drive_cost[i] > 0, AtMost(*[(x == i) for x in my_drive_to], req['max_passengers_to']+2), And([(x == i) for x in my_drive_to]))
+  for driver in range(len(req)):
+    opt.add(Implies(drive_cost[driver] > 0, AtMost(*[my_drive_to[rider] == driver for rider in range(len(req)) if rider != driver ],req[driver]['max_passengers_to'] )))
+    opt.add(Implies(drive_cost[driver] > 0, AtMost(*[my_drive_fro[rider] == driver for rider in range(len(req)) if rider != driver ],req[driver]['max_passengers_fro'] )))
+  
+  total_costs = Int('cost')
+  opt.add(total_costs == Sum(drive_cost) + Sum(time_fro) - Sum(time_to))
+  opt.minimize(total_costs)
+  
   check = opt.check()
-  for req in requests:
-    print(req['user'], req['driver_status'], req['time_to'], req['time_to_max_delay'], req['max_passengers_to'], req['time_fro'], req['time_fro_max_delay'], req['max_passengers_fro'])
-  # print(a)
   if check == sat: 
     solution = opt.model()
-    print((cost,solution[cost]))
-    print([(var,solution[var]) for var in drive])
-    print([(var,solution[var]) for var in delay_to])
-    print([(var,solution[var]) for var in delay_fro])
+    drives = []
+    for index, r in enumerate(req):
+      if solution[drive_cost[index]].as_long() > 0:
+        drive = {'date': date, 'user': r['user'], 'max_passengers_to': r['max_passengers_to'], 'max_passengers_fro': r['max_passengers_fro'], 'time_to': time(solution[time_to[index]].as_long()), 'time_fro': time(solution[time_fro[index]].as_long())}
+        drive['rides_to'] = [ req[i]['user'] for i in range(len(req)) if i != index and solution[my_drive_to[i]].as_long() == index ]
+        drive['rides_fro'] = [ req[i]['user'] for i in range(len(req)) if i != index and solution[my_drive_fro[i]].as_long() == index ]
+        drives.append(drive)
+    return drives
   else:
-    print("unsat")
+    return []
+
+      
+    
+  
