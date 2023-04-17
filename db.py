@@ -34,6 +34,22 @@ def getactive_requests(date):
       d["date"] = date
   return requests
   
+def update_schedule(date):
+  db.execute("delete from drives where date = ?", [date])
+  db.execute("delete from rides where date = ?", [date])
+  if not in_holidays(date):
+    drives = z3.schedule(date)
+    for d in drives:
+      db.execute( "INSERT INTO drives (Date, Driver, max_passengers_to, max_passengers_fro, time_to, time_fro) VALUES (?,?,?,?,?,?)", [d['date'], d['user'], d['max_passengers_to'], d['max_passengers_fro'], d['time_to'], d['time_fro'] ])
+      for rider in d['rides_to']:
+        db.execute("INSERT INTO rides (Date, time, Driver, Rider) VALUES (?, ?, ?, ?)", [d['date'], d['time_to'], d['user'], rider])
+      for rider in d['rides_fro']:
+        db.execute("INSERT INTO rides (Date, time, Driver, Rider) VALUES (?, ?, ?, ?)", [d['date'], d['time_fro'], d['user'], rider])
+
 def schedule(date):
-  return db_select("select * from schedule where Date = ?", [date])
+  schedule = db_select("select * from schedule where Date = ?", [date])
+  if len(result) == 0:
+    update_schedule(date)
+    schedule = db_select("select * from schedule where Date = ?", [date])
+  return schedule
   
