@@ -10,7 +10,7 @@ def time_slot(time):
 
 def time(time_slot):
   minutes = time_slot * 5
-  return str(time_slot // 60).zfill(2) + ":" + str(time_slot % 60).zfill(2)
+  return str(minutes // 60).zfill(2) + ":" + str(minutes % 60).zfill(2)
 
 # Fahrtkosten:
 def drive_costs(req): 
