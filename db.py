@@ -27,7 +27,19 @@ def in_holidays(date):
   result = db_select('select * from holidays where date_from <= ? and date_to >= ?;', [date, date])
   return (len(result) > 0)
 
-def getactive_requests(date):
+def requests(user):
+  requests = db_select("SELECT * FROM requests WHERE user = ?",[user])
+  return sorted(requests, key=lambda d: d['date']) 
+
+def add_request(request):
+  if request['driver_status'] =='M':
+    request['time_to_max_delay'] = 300
+    request['time_fro_max_delay'] = 300
+  db.execute("DELETE FROM requests WHERE user = ? and date = ?",[request['user'],request['date']])
+  db.execute("INSERT INTO requests (user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?)",[request['user'], request['date'],request['driver_status'],request['time_to'],request['time_to_max_delay'],request['max_passengers_to'],request['time_fro'],request['time_fro_max_delay'],request['max_passengers_fro']])
+  db.commit()
+  
+def active_requests(date):
   requests = []
   if (not in_holidays(date)):
     requests = db_select ('select * from requests_view where user || date in (select user || max(date) from requests where date <= ? and strftime("%w",date) = strftime("%w",?) group by user having user not in (select user from exceptions where date = ?)) union select * from exceptions_view where date = ? and driver_status != 0;',[date,date,date,date])
@@ -52,9 +64,7 @@ def schedule(date):
   if in_holidays(date):
     update_schedule(date)
   schedule = db_select("select * from schedule where Date = ?", [date])
-  print(schedule)
   if len(schedule) == 0:
-    print("schedule is empty")
     update_schedule(date)
     schedule = db_select("select * from schedule where Date = ?", [date])
   return schedule

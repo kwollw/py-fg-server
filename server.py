@@ -38,4 +38,18 @@ def schedule():
   response.content_type = 'application/json'
   return json.dumps({'message': 'success', 'data': result})
 
+@route('/requests', method='GET')
+def requests():
+  result = db.requests(request.json['user'])
+  return json.dumps({'message': 'success', 'requests': result})
+
+@route('/request', method='POST')
+def add_request()
+  print("to be implemented")
+  result = db.add_request(request.json['data'])
+  response.content_type = 'application/json'
+  return json.dumps({'message': 'success', 'data': result})
+
+
+
 run(host='localhost', port=4000, debug=True)

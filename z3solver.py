@@ -17,7 +17,7 @@ def drive_costs(req):
   return 1000 + req['passengers_count']-req['rides_count']
 
 def schedule(date):
-  req = db.getactive_requests(date)
+  req = db.active_requests(date)
   drive_cost = IntVector('drive_cost', len(req))
   time_to = IntVector('time_to', len(req))
   time_fro =  IntVector('time_fro', len(req))
