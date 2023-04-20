@@ -32,13 +32,22 @@ def requests(user):
   return sorted(requests, key=lambda d: d['date']) 
 
 def add_request(request):
-  if request['driver_status'] =='M':
-    request['time_to_max_delay'] = 300
-    request['time_fro_max_delay'] = 300
-  db.execute("DELETE FROM requests WHERE user = ? and date = ?",[request['user'],request['date']])
-  db.execute("INSERT INTO requests (user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?)",[request['user'], request['date'],request['driver_status'],request['time_to'],request['time_to_max_delay'],request['max_passengers_to'],request['time_fro'],request['time_fro_max_delay'],request['max_passengers_fro']])
+  if request['driverStatus'] =='M':
+    request['timeToMaxDelay'] = 300
+    request['timeFroMaxDelay'] = 300
+  print(request)
+  if request['weeklyRepeat']:
+    #todo: delete all weekdays like this 
+    db.execute("DELETE FROM requests WHERE user = ? and date = ?",[request['user'],request['date']])
+    db.execute("INSERT INTO requests (user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?)",[request['user'], request['date'],request['driverStatus'],request['timeTo'],request['timeToMaxDelay'],request['maxPassengersTo'],request['timeFro'],request['timeFroMaxDelay'],request['maxPassengersFro']])
+    #todo: update schedules at all coming weekdays like this 
+    update_schedule(request['date'])
+  else:
+    db.execute("DELETE FROM exceptions WHERE user = ? and date = ?",[request['user'],request['date']])
+    db.execute("INSERT INTO exceptions (user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?)",[request['user'], request['date'],request['driverStatus'],request['timeTo'],request['timeToMaxDelay'],request['maxPassengersTo'],request['timeFro'],request['timeFroMaxDelay'],request['maxPassengersFro']])
+    update_schedule(request['date'])
   db.commit()
-  
+
 def active_requests(date):
   requests = []
   if (not in_holidays(date)):
