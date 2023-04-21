@@ -23,8 +23,8 @@ def schedule(date):
   time_fro =  IntVector('time_fro', len(req))
   my_drive_to = IntVector('my_drive_to', len(req))
   my_drive_fro = IntVector('my_drive_fro', len(req))
-  
-  
+
+  print("start optimize")
   opt = Optimize()
   # Fahrtkosten:
   opt.add([ drive_cost[i] == drive_costs(req[i]) for i in range(len(req)) if req[i]["driver_status"]=="F" ])
@@ -32,7 +32,9 @@ def schedule(date):
   opt.add([ (Or(drive_cost[i] == 0, drive_cost[i] == drive_costs(req[i]))) for i in range(len(req)) if req[i]["driver_status"]=="FM" ])
 
   # Fahrtzeiten:
+  opt.add([ time_to[i] == 0 for i in range(len(req)) if req[i]["time_to"] == "" ]) # keine Hinfahrt
   opt.add([ And(time_to[i]<= time_slot(req[i]['time_to']), time_to[i] >= time_slot(req[i]['time_to']) - req[i]['time_to_max_delay'] // 5) for i in range(len(req)) if req[i]["time_to"] != "" ])
+  opt.add([ time_fro[i] == 0 for i in range(len(req)) if req[i]["time_fro"] == "" ]) # keine Rückfahrt
   opt.add([ And(time_fro[i] >= time_slot(req[i]['time_fro']) , time_fro[i]<= time_slot(req[i]['time_fro']) + req[i]['time_fro_max_delay'] // 5) for i in range(len(req)) if req[i]["time_fro"] != "" ])
   
   # Fahrer fahren ihr Fahrzeug, Mitfahrer fahren in anderem Fahrzeug
@@ -54,17 +56,25 @@ def schedule(date):
   total_costs = Int('cost')
   opt.add(total_costs == Sum(drive_cost) + Sum(time_fro) - Sum(time_to))
   opt.minimize(total_costs)
-  
+  print("start check")
   check = opt.check()
+  drives = []
   if check == sat: 
+    print("check ready")
     solution = opt.model()
-    drives = []
+    print(solution)
     for index, r in enumerate(req):
       if solution[drive_cost[index]].as_long() > 0:
         drive = {'date': date, 'user': r['user'], 'max_passengers_to': r['max_passengers_to'], 'max_passengers_fro': r['max_passengers_fro'], 'time_to': time(solution[time_to[index]].as_long()), 'time_fro': time(solution[time_fro[index]].as_long())}
         drive['rides_to'] = [ req[i]['user'] for i in range(len(req)) if i != index and solution[my_drive_to[i]].as_long() == index ]
         drive['rides_fro'] = [ req[i]['user'] for i in range(len(req)) if i != index and solution[my_drive_fro[i]].as_long() == index ]
         drives.append(drive)
-    return drives
   else:
-    return []
+    print("=" *50)
+    print("unsat error:")
+    print(rec)
+    print("-" *50)
+    print(opt)
+    print("=" *50)
+  print (drives)
+  return drives
