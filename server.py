@@ -30,25 +30,26 @@ def users():
   groupID = "PUS" # to be parameterized
   userlist = db.active_users(groupID)
   response.content_type = 'application/json'
-  return json.dumps({'message': 'success', 'users': userlist})
+  return json.dumps(userlist)
+
+@route('/api/requests', method='GET')
+def requests():
+  user = request.query['user']
+  requests = db.requests(user)
+  exceptions = db.exceptions(user)
+  return json.dumps({'requests': requests, 'exceptions': exceptions})
 
 @route('/api/schedule', method='POST')
 def schedule():
   result = db.schedule(request.json['date'])
   response.content_type = 'application/json'
-  return json.dumps({'message': 'success', 'data': result})
-
-@route('/api/requests', method='GET')
-def requests():
-  result = db.requests(request.json['user'])
-  return json.dumps({'message': 'success', 'requests': result})
+  return json.dumps(result)
 
 @route('/api/request', method='POST')
 def add_request():
   result = db.add_request(request.json)
   response.content_type = 'application/json'
   return json.dumps({'message': 'success', 'data': result})
-
 
 
 run(host='localhost', port=4000, debug=True)

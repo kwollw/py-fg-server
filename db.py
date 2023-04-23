@@ -31,11 +31,15 @@ def requests(user):
   requests = db_select("SELECT * FROM requests WHERE user = ?",[user])
   return sorted(requests, key=lambda d: d['date']) 
 
+def exceptions(user):
+  db.execute("DELETE FROM exceptions WHERE date < DATE()")
+  exceptions = db_select("SELECT * FROM exceptions WHERE user = ?",[user])
+  return sorted(exceptions, key=lambda d: d['date']) 
+
 def add_request(request):
   if request['driverStatus'] =='M':
     request['timeToMaxDelay'] = 300
     request['timeFroMaxDelay'] = 300
-  print(request)
   if request['weeklyRepeat']:
     #todo: delete all weekdays like this 
     db.execute("DELETE FROM requests WHERE user = ? and date = ?",[request['user'],request['date']])
