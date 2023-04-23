@@ -38,10 +38,9 @@ def exceptions(user):
 
 def delete_requests(requests):
   for req in requests['selectedReqs']:
-    print(req)
-    db.execute("DELETE FROM requests WHERE requestID = ?", [req['requestID']])
+    db.execute("DELETE FROM requests WHERE requestID = ?", [req['requestID']]) 
+    #todo: update schedule all weekdays like this
   for exc in requests['selectedExcs']:
-    print(exc)
     db.execute("DELETE FROM exceptions WHERE exceptionID = ?", [exc['exceptiionID']])
     update_schedule(exc['date'])
   db.commit()
