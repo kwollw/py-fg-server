@@ -36,6 +36,17 @@ def exceptions(user):
   exceptions = db_select("SELECT * FROM exceptions WHERE user = ?",[user])
   return sorted(exceptions, key=lambda d: d['date']) 
 
+def delete_requests(requests):
+  for req in requests['selectedReqs']:
+    print(req)
+    db.execute("DELETE FROM requests WHERE requestID = ?", [req['requestID']])
+  for exc in requests['selectedExcs']:
+    print(exc)
+    db.execute("DELETE FROM exceptions WHERE exceptionID = ?", [exc['exceptiionID']])
+    update_schedule(exc['date'])
+  db.commit()
+  update_schedule(date)
+
 def add_request(request):
   if request['driverStatus'] =='M':
     request['timeToMaxDelay'] = 300
