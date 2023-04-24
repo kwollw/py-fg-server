@@ -51,6 +51,12 @@ def add_request():
   response.content_type = 'application/json'
   return json.dumps({'message': 'success', 'data': result})
 
+@route('/api/register', method='POST')
+def add_request():
+  result = db.register(request.json)
+  response.content_type = 'application/json'
+  return json.dumps({'message': 'success', 'data': result})
+
 @route('/api/delete_requests', method='POST')
 def delete_requests():
   result = db.delete_requests(request.json)

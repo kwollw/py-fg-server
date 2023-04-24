@@ -91,4 +91,7 @@ def schedule(date):
     update_schedule(date)
     schedule = db_select("select * from schedule where Date = ?", [date])
   return schedule
-  
+
+def register(data):
+  print(data)
+  return ''
