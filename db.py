@@ -20,6 +20,14 @@ def getlogin(user, password):
     del user["password_sha1"]
   return user
 
+def is_uniq_user(groupID, user):
+  result = db_select('select * from members where (groupID = ? and user = ?',[groupID, user])
+  return len(result) > 0
+
+def groups():
+  result = db_select('select * from groups')
+  return sorted(requests, key=lambda d: d['description']) 
+
 def active_users(groupID):
   return db_select('select * from members where active = "true" and groupID = ? order by sirname',[groupID])
   
