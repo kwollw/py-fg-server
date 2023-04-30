@@ -38,7 +38,7 @@ def users():
   response.content_type = 'application/json'
   return json.dumps(userlist)
 
-@route('/api/is_user_uniq', method='GET')
+@route('/api/is_uniq_user', method='GET')
 def is_uniq_user():  
   groupID = request.query['group']
   user = request.query['user']
