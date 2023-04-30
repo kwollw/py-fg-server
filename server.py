@@ -40,7 +40,10 @@ def users():
 
 @route('/api/is_uniq_user', method='GET')
 def is_uniq_user():  
-  groupID = request.query['group']
+  if 'group' in request.query:
+    groupID = request.query['group']
+  else:
+    groupID = ''
   user = request.query['user']
   uniq = db.is_uniq_user(groupID, user)
   response.content_type = 'application/json'
