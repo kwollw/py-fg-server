@@ -25,12 +25,26 @@ def authenticate():
   else:
     return json.dumps({ "message":"failed"})
 
+@route('/api/groups', method='GET')
+def groups():  
+  groups = db.groups()
+  response.content_type = 'application/json'
+  return json.dumps(groups)
+
 @route('/api/users', method='GET')
 def users():  
-  groupID = "PUS" # to be parameterized
+  groupID = request.query['group']
   userlist = db.active_users(groupID)
   response.content_type = 'application/json'
   return json.dumps(userlist)
+
+@route('/api/is_user_uniq', method='GET')
+def is_uniq_user():  
+  groupID = request.query['group']
+  user = request.query['user']
+  uniq = db.is_uniq_user(groupID, user)
+  response.content_type = 'application/json'
+  return json.dumps(uniq)
 
 @route('/api/requests', method='GET')
 def requests():

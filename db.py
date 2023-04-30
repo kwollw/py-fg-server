@@ -21,12 +21,15 @@ def getlogin(user, password):
   return user
 
 def is_uniq_user(groupID, user):
-  result = db_select('select * from members where (groupID = ? and user = ?',[groupID, user])
-  return len(result) > 0
+  if groupID == '':
+    result = db_select('select * from members where user = ?',[user])
+  else:
+    result = db_select('select * from members where (groupID = ? and user = ?',[groupID, user])
+  return len(result) == 0
 
 def groups():
-  result = db_select('select * from groups')
-  return sorted(requests, key=lambda d: d['description']) 
+  groups = db_select('select * from groups')
+  return sorted(groups, key=lambda d: d['description']) 
 
 def active_users(groupID):
   return db_select('select * from members where active = "true" and groupID = ? order by sirname',[groupID])
