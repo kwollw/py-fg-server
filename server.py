@@ -54,8 +54,9 @@ def groups():
 
 @route('/api/users', method='GET')
 def users():  
-  groupID, user = get_params(request,['groupID','user'])
-  userlist = db.active_users(groupID, user)
+  groupID = get_params(request,['groupID'])
+  print(groupID)
+  userlist = db.active_users(groupID)
   response.content_type = 'application/json'
   return json.dumps(userlist)
 

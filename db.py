@@ -31,7 +31,7 @@ def groups():
   groups = db_select('select * from groups',[])
   return sorted(groups, key=lambda d: d['description']) 
 
-def active_users(groupID, user):
+def active_users(groupID):
   return db_select('select * from members where active = "true" and groupID = ? order by sirname',[groupID])
   
 def in_holidays(date):

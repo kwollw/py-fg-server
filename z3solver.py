@@ -68,7 +68,7 @@ def schedule(groupID, date):
   else:
     print("=" *50)
     print("unsat error:")
-    print(rec)
+    print(req)
     print("-" *50)
     print(opt)
     print("=" *50)
