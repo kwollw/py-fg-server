@@ -75,8 +75,9 @@ def requests():
 
 @route('/api/schedule', method='POST')
 def schedule():
+  print(request.json)
   groupID, date = post_params(request,['groupID','date'])
-  result = db.schedule(request.json['groupID','date'])
+  result = db.schedule(groupID, date)
   response.content_type = 'application/json'
   return json.dumps(result)
 

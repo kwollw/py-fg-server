@@ -72,17 +72,17 @@ def add_request(request):
     update_schedule(request['date'])
   db.commit()
 
-def active_requests(date):
+def active_requests(groupID, date):
   requests = []
   if (not in_holidays(date)):
-    requests = db_select ('select * from requests_view where (groupID, user, date) in (select groupID, user, max(date) from requests where date <= ? and strftime("%w",date) = strftime("%w",?) group by groupID, user having (groupID, user) not in (select groupID, user from exceptions where date = ?)) union select * from exceptions_view where date = ? and driver_status != 0;',[date,date,date,date])
+    requests = db_select ('select * from requests_view where (groupID, user, date) in (select ?, user, max(date) from requests where date <= ? and strftime("%w",date) = strftime("%w",?) group by groupID, user having (groupID, user) not in (select groupID, user from exceptions where date = ?)) union select * from exceptions_view where date = ? and driver_status != 0;',[groupID, date, date, date, date])
     for d in requests:
       d["date"] = date
   return requests
   
 def update_schedule(groupID, date):
-  db.execute("delete from drives where not fixed and (groupID, date) = ?,?", [groupID, date])
-  db.execute("delete from rides where not fixed and (groupID, date) = ?,?", [groupID, date])
+  db.execute("delete from drives where not fixed and (groupID, date) = (?,?)", [groupID, date])
+  db.execute("delete from rides where not fixed and (groupID, date) = (?,?)", [groupID, date])
   if not in_holidays(date):
     drives = z3.schedule(groupID, date)
     for d in drives:
@@ -93,13 +93,15 @@ def update_schedule(groupID, date):
         db.execute("INSERT INTO rides (fixed, groupID, Date, time, Driver, Rider) VALUES (false, ?, ?, ?, ?)", [groupID, d['date'], d['time_fro'], d['user'], rider])
   db.commit()
 
-def schedule(date):
+def schedule(groupID, date):
+  print(groupID, date)
   if in_holidays(date):
-    update_schedule(date)
-  schedule = db_select("select * from schedule where Date = ?", [date])
+    update_schedule(groupID, date)
+  schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
   if len(schedule) == 0:
-    update_schedule(date)
-    schedule = db_select("select * from schedule where Date = ?", [date])
+    update_schedule(groupID, date)
+    schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
+  print(schedule)
   return schedule
 
 def register(data):
