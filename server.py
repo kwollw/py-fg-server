@@ -15,9 +15,30 @@ install(cors_plugin('*'))
 
 # app.install(aud)
 
+# GET params from request.query
+def get_params(request, params):
+  result = []
+  for param in params:
+    if param in request.query:
+      result.append(request.query[param])
+    else:
+      result.append(None)
+  return result
+
+# POST params from request.json
+def post_params(request, params):
+  result = []
+  for param in params:
+    if param in request.json:
+      result.append(request.json[param])
+    else:
+      result.append(None)
+  return result
+
 @route('/api/users/authenticate', method='POST')
 def authenticate():  
-  user = db.getlogin(request.json['username'], request.json['password'])
+  username, password = post_params(request,['username','password'])
+  user = db.getlogin(username, password)
   response.content_type = 'application/json'
   if (len(user)>0):
     token = jwt.encode({"user": user["user"]}, jwt_config["key"], algorithm="HS256")
@@ -33,32 +54,29 @@ def groups():
 
 @route('/api/users', method='GET')
 def users():  
-  groupID = request.query['group']
-  userlist = db.active_users(groupID)
+  groupID, user = get_params(request,['groupID','user'])
+  userlist = db.active_users(groupID, user)
   response.content_type = 'application/json'
   return json.dumps(userlist)
 
 @route('/api/is_uniq_user', method='GET')
 def is_uniq_user():  
-  if 'group' in request.query:
-    groupID = request.query['group']
-  else:
-    groupID = ''
-  user = request.query['user']
+  groupID, user = get_params(request,['groupID','user'])
   uniq = db.is_uniq_user(groupID, user)
   response.content_type = 'application/json'
   return json.dumps(uniq)
 
 @route('/api/requests', method='GET')
 def requests():
-  user = request.query['user']
-  requests = db.requests(user)
-  exceptions = db.exceptions(user)
+  groupID, user = get_params(request,['groupID','user'])
+  requests = db.requests(groupID, user)
+  exceptions = db.exceptions(groupID, user)
   return json.dumps({'requests': requests, 'exceptions': exceptions})
 
 @route('/api/schedule', method='POST')
 def schedule():
-  result = db.schedule(request.json['date'])
+  groupID, date = post_params(request,['groupID','date'])
+  result = db.schedule(request.json['groupID','date'])
   response.content_type = 'application/json'
   return json.dumps(result)
 
