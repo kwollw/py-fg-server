@@ -86,11 +86,11 @@ def update_schedule(groupID, date):
   if not in_holidays(date):
     drives = z3.schedule(groupID, date)
     for d in drives:
-      db.execute( "INSERT INTO drives (fixed, groupID, Date, Driver, max_passengers_to, max_passengers_fro, time_to, time_fro) VALUES (false,?,?,?,?,?,?)", [d['date'], d['user'], d['max_passengers_to'], d['max_passengers_fro'], d['time_to'], d['time_fro'] ])
+      db.execute( "INSERT INTO drives (fixed, groupID, Date, Driver, max_passengers_to, max_passengers_fro, time_to, time_fro) VALUES (false,?,?,?,?,?,?,?)", [groupID, d['date'], d['user'], d['max_passengers_to'], d['max_passengers_fro'], d['time_to'], d['time_fro'] ])
       for rider in d['rides_to']:
-        db.execute("INSERT INTO rides (fixed, groupID, Date, time, Driver, Rider) VALUES (false, ?, ?, ?, ?)", [groupID, d['date'], d['time_to'], d['user'], rider])
+        db.execute("INSERT INTO rides (fixed, groupID, Date, time, Driver, Rider) VALUES (false, ?, ?, ?, ?, ?)", [groupID, d['date'], d['time_to'], d['user'], rider])
       for rider in d['rides_fro']:
-        db.execute("INSERT INTO rides (fixed, groupID, Date, time, Driver, Rider) VALUES (false, ?, ?, ?, ?)", [groupID, d['date'], d['time_fro'], d['user'], rider])
+        db.execute("INSERT INTO rides (fixed, groupID, Date, time, Driver, Rider) VALUES (false, ?, ?, ?, ?, ?)", [groupID, d['date'], d['time_fro'], d['user'], rider])
   db.commit()
 
 def schedule(groupID, date):
