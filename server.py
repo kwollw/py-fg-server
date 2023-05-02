@@ -16,22 +16,10 @@ app.install(cors_plugin('*'))
 
 # app.install(aud)
 
-# POST params from request.json
-def post_params(request, params):
-  print('params: ', dict(request.params))
-  print('json: ', request.json)
-  result = []
-  for param in params:
-    if param in request.json:
-      result.append(request.json[param])
-    else:
-      result.append(None)
-  print(result)
-  return result
-
 @route('/api/users/authenticate', method='POST')
 def authenticate():  
-  username, password = post_params(request,['username','password'])
+  username = request.json.get('username')
+  password = request.json.get('password')
   user = db.getlogin(username, password)
   response.content_type = 'application/json'
   if (len(user)>0):
@@ -48,32 +36,31 @@ def groups():
 
 @route('/api/users', method='GET')
 def users():  
-  groupID = request.params['groupID']
-  print(groupID)
+  groupID = request.params.groupID
   userlist = db.active_users(groupID)
   response.content_type = 'application/json'
   return json.dumps(userlist)
 
 @route('/api/is_uniq_user', method='GET')
 def is_uniq_user():  
-  groupID = request.params['groupID']
-  user = request.params['user']
+  groupID = request.params.groupID
+  user = request.params.user
   uniq = db.is_uniq_user(groupID, user)
   response.content_type = 'application/json'
   return json.dumps(uniq)
 
 @route('/api/requests', method='GET')
 def requests():
-  groupID = request.params['groupID']
-  user = request.params['user']
+  groupID = request.params.groupID
+  user = request.params.user
   requests = db.requests(groupID, user)
   exceptions = db.exceptions(groupID, user)
   return json.dumps({'requests': requests, 'exceptions': exceptions})
 
 @route('/api/schedule', method='POST')
 def schedule():
-  print(request.json)
-  groupID, date = post_params(request,['groupID','date'])
+  groupID = request.json.get('groupID')
+  date = request.json.get('date')
   result = db.schedule(groupID, date)
   response.content_type = 'application/json'
   return json.dumps(result)

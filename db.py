@@ -94,14 +94,12 @@ def update_schedule(groupID, date):
   db.commit()
 
 def schedule(groupID, date):
-  print(groupID, date)
   if in_holidays(date):
     update_schedule(groupID, date)
   schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
   if len(schedule) == 0:
     update_schedule(groupID, date)
     schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
-  print(schedule)
   return schedule
 
 def register(data):
