@@ -52,8 +52,8 @@ def delete_requests(requests):
     db.execute("DELETE FROM requests WHERE requestID = ?", [req['requestID']]) 
     #todo: update schedule all weekdays like this
   for exc in requests['selectedExcs']:
-    db.execute("DELETE FROM exceptions WHERE exceptionID = ?", [exc['exceptiionID']])
-    update_schedule(exc['goupID'], exc['date'])
+    db.execute("DELETE FROM exceptions WHERE exceptionID = ?", [exc['exceptionID']])
+    update_schedule(exc['groupID'], exc['date'])
   db.commit()
 
 def add_request(request):
