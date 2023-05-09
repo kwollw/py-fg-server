@@ -23,4 +23,12 @@ UPDATE requests
 UPDATE rides
 	SET groupID = 'PUS';
 
+UPDATE members
+  SET active = true
+  WHERE active = 'true';
+
+UPDATE members
+  SET active = false
+  WHERE active = 'false';
+
 COMMIT

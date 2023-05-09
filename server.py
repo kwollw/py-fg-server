@@ -45,7 +45,9 @@ def users():
 def is_uniq_user():  
   groupID = request.params.groupID
   user = request.params.user
+  print(dict(request.query.decode()))
   uniq = db.is_uniq_user(groupID, user)
+  print(uniq)
   response.content_type = 'application/json'
   return json.dumps(uniq)
 

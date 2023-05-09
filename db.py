@@ -32,7 +32,7 @@ def groups():
   return sorted(groups, key=lambda d: d['description']) 
 
 def active_users(groupID):
-  return db_select('select * from members where active = "true" and groupID = ? order by sirname',[groupID])
+  return db_select('select * from members where active = true and groupID = ? order by sirname',[groupID])
   
 def in_holidays(date):
   result = db_select('select * from holidays where date_from <= ? and date_to >= ?;', [date, date])
@@ -53,10 +53,11 @@ def delete_requests(requests):
     #todo: update schedule all weekdays like this
   for exc in requests['selectedExcs']:
     db.execute("DELETE FROM exceptions WHERE exceptionID = ?", [exc['exceptiionID']])
-    update_schedule(exc['date'])
+    update_schedule(exc['goupID'], exc['date'])
   db.commit()
 
 def add_request(request):
+  print(request)
   if request['driverStatus'] =='M':
     request['timeToMaxDelay'] = 300
     request['timeFroMaxDelay'] = 300
@@ -65,11 +66,11 @@ def add_request(request):
     db.execute("DELETE FROM requests WHERE (groupID, user, date) = (?,?,?)",[request['groupID'],request['user'],request['date']])
     db.execute("INSERT INTO requests (groupID, user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?,?)",[request['groupID'], request['user'], request['date'],request['driverStatus'],request['timeTo'],request['timeToMaxDelay'],request['maxPassengersTo'],request['timeFro'],request['timeFroMaxDelay'],request['maxPassengersFro']])
     #todo: update schedules at all coming weekdays like this 
-    update_schedule(request['date'])
+    update_schedule(request['groupID'], request['date'])
   else:
     db.execute("DELETE FROM exceptions WHERE (groupID, user, date) = (?,?,?)",[request['groupID'],request['user'],request['date']])
     db.execute("INSERT INTO exceptions (groupID, user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?,?)",[request['groupID'], request['user'], request['date'],request['driverStatus'],request['timeTo'],request['timeToMaxDelay'],request['maxPassengersTo'],request['timeFro'],request['timeFroMaxDelay'],request['maxPassengersFro']])
-    update_schedule(request['date'])
+    update_schedule(request['groupID'], request['date'])
   db.commit()
 
 def active_requests(groupID, date):
@@ -102,6 +103,13 @@ def schedule(groupID, date):
     schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
   return schedule
 
-def register(data):
-  print(data)
-  return ''
+def register(d):
+  print(d)
+  password_hash = hashlib.sha1((d['password'] + salt).encode()).hexdigest()
+  c = d['car']
+  if(c['noCar']): 
+    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobil'], d['mail']])
+  else:
+    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, car, color, licenceplate, max_passengers, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobil'], d['mail'], c['cartype'], c['color'], c['id'], c['rides']])
+  db.commit()
+  print('insert executed.')
