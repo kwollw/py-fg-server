@@ -103,6 +103,21 @@ def schedule(groupID, date):
     schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
   return schedule
 
+def hop_on(groupID, user, date, dir, driver):
+  print(groupID, user, date, dir, driver)
+  # drives = db_select("select * from drives where (groupID, date, driver) = (?,?,?)",[groupID, date, driver])
+  # if dir == "to":
+  #   time = drives['time_to']
+  # else:
+  #   time = drives['time_fro']
+  # db.execute("delete from rides where groupID, date, time, rider = (?,?,?,?)" , [groupID, date, time, user])
+  # db.execute("insert into rides (groupID, date, time, driver, rider, fixed) values(?,?,?,?,true)" , [groupID, date, time, driver, user])
+
+def hop_off(groupID, user, date, time):
+  print ("hop_off", groupID, user, date, time)
+  db.execute("delete from rides where (groupID, rider, date, time) = (?,?,?,?)" , [groupID, user, date, time])
+  db.commit()
+
 def register(d):
   print(d)
   password_hash = hashlib.sha1((d['password'] + salt).encode()).hexdigest()

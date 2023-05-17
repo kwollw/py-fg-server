@@ -59,6 +59,26 @@ def requests():
   exceptions = db.exceptions(groupID, user)
   return json.dumps({'requests': requests, 'exceptions': exceptions})
 
+@route('/api/hop_on', method='GET')
+def hop_on():
+  groupID = request.params.groupID
+  user = request.params.user
+  date = request.params.date
+  dir = request.params.dir
+  driver = request.params.driver
+  db.hop_on(groupID, user)
+  result = db.hop_on(groupID, user, date, dir, driver)
+  return json.dumps({'result': result})
+
+@route('/api/hop_off', method='GET')
+def hop_off():
+  groupID = request.params.groupID
+  user = request.params.user
+  date = request.params.date
+  time = request.params.time
+  result = db.hop_off(groupID, user, date, time)
+  return json.dumps({'result': result})
+
 @route('/api/schedule', method='POST')
 def schedule():
   groupID = request.json.get('groupID')
