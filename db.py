@@ -107,25 +107,30 @@ def hop_on(groupID, user, date, dir, driver):
   print("hop_on", groupID, user, date, dir, driver)
 
   if dir == "to":
-    old_ride = db_select("select time from rides natural join drives d where time_to = time and (d.date, rider) = (?,?)", [date, user])
+    old_ride = db_select("select time from rides natural join drives d where time_to = time and (date, rider) = (?,?)", [date, user])
     new_ride = db_select("select time_to as time from drives where (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
   else:
-    old_ride = db_select("select time from rides natural join drives d where time_fro = time and (d.date, rider) = (?,?)", [date, user])
+    old_ride = db_select("select time from rides natural join drives d where time_fro = time and (date, rider) = (?,?)", [date, user])
     new_ride = db_select("select time_fro as time from drives where (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
   # delete old ride if exists:
+  print("old_ride",old_ride)
+
   if len(old_ride)>0:
     hop_off(groupID, user, date, old_ride[0]['time'])
   # add new ride:
+  print(new_ride)
   if len(new_ride)>0:
     db.execute("insert into rides (groupID, date, time, driver, rider, fixed) values(?,?,?,?,?,true)" , [groupID, date, new_ride[0]['time'], driver, user])
   db.commit()
   print('hop_on executed.')
+  return schedule(groupID, date)
 
 def hop_off(groupID, user, date, time):
   print ("hop_off", groupID, user, date, time)
   db.execute("delete from rides where (groupID, rider, date, time) = (?,?,?,?)" , [groupID, user, date, time])
   print('hop_off executed.')
   db.commit()
+  return schedule(groupID, date)
 
 def register(d):
   print(d)

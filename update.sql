@@ -14,6 +14,14 @@ UPDATE members
 UPDATE drives
 	SET groupID = 'PUS';
 
+UPDATE drives
+	SET fixed = true
+WHERE fixed = 'true';
+
+UPDATE drives
+	SET fixed = false
+WHERE fixed = 'false';
+
 UPDATE exceptions
 	SET groupID = 'PUS';
 
@@ -22,6 +30,15 @@ UPDATE requests
 
 UPDATE rides
 	SET groupID = 'PUS';
+
+UPDATE rides
+	SET fixed = true
+WHERE fixed = 'true';
+
+UPDATE rides
+	SET fixed = false
+WHERE fixed = 'false';
+
 
 UPDATE members
   SET active = true

@@ -31,7 +31,7 @@ from requests a, members b
 where a.user = b.user;
 
 DROP VIEW rides_count;
-CREATE VIEW rides_count AS SELECT groupID, Rider user, count() rides_count FROM rides where fixed = 'true' GROUP BY Rider;
+CREATE VIEW rides_count AS SELECT groupID, Rider user, count() rides_count FROM rides where fixed = true GROUP BY Rider;
 
 DROP VIEW schedule;
 CREATE VIEW schedule as 
@@ -56,6 +56,6 @@ where rider is NULL and time_fro <> ''
 group by d.groupID, d.Date, time, direction, d.Driver, max_passengers;
 
 DROP VIEW total_drives;
-CREATE VIEW total_drives AS SELECT groupID, Driver user, count(*) drives FROM drives where fixed = 'true' GROUP BY groupID, Driver;
+CREATE VIEW total_drives AS SELECT groupID, Driver user, count(*) drives FROM drives where fixed = true GROUP BY groupID, Driver;
 
 COMMIT;
