@@ -66,7 +66,6 @@ def hop_on():
   date = request.params.date
   dir = request.params.dir
   driver = request.params.driver
-  db.hop_on(groupID, user)
   result = db.hop_on(groupID, user, date, dir, driver)
   return json.dumps({'result': result})
 
