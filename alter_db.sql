@@ -58,4 +58,11 @@ group by d.groupID, d.Date, time, direction, d.Driver, max_passengers;
 DROP VIEW total_drives;
 CREATE VIEW total_drives AS SELECT groupID, Driver user, count(*) drives FROM drives where fixed = true GROUP BY groupID, Driver;
 
+CREATE VIEW drive_dates as
+select date, groupID, driver as user
+from drives
+UNION
+select date, groupID, rider as user
+from rides
+
 COMMIT;

@@ -34,6 +34,13 @@ def groups():
   response.content_type = 'application/json'
   return json.dumps(groups)
 
+@route('/api/next_drive', method='GET')
+def next_drive():  
+  groupID = request.params.groupID
+  user = request.params.user
+  response.content_type = 'application/json'
+  return json.dumps(db.next_drive(groupID, user))
+
 @route('/api/users', method='GET')
 def users():  
   groupID = request.params.groupID
@@ -45,9 +52,7 @@ def users():
 def is_uniq_user():  
   groupID = request.params.groupID
   user = request.params.user
-  print(dict(request.query.decode()))
   uniq = db.is_uniq_user(groupID, user)
-  print(uniq)
   response.content_type = 'application/json'
   return json.dumps(uniq)
 
