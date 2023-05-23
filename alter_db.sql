@@ -63,6 +63,6 @@ select date, groupID, driver as user
 from drives
 UNION
 select date, groupID, rider as user
-from rides
+from rides;
 
 COMMIT;
