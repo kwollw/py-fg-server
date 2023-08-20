@@ -93,7 +93,7 @@ def schedule():
   response.content_type = 'application/json'
   return json.dumps(result)
 
-@route('/api/request', method='POST')
+@route('/api/add_request', method='POST')
 def add_request():
   result = db.add_request(request.json)
   response.content_type = 'application/json'
