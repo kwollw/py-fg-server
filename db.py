@@ -82,6 +82,7 @@ def active_requests(groupID, date):
   return requests
   
 def update_schedule(groupID, date):
+  print ('update_schedule:', groupID, date)
   db.execute("delete from drives where not fixed and (groupID, date) = (?,?)", [groupID, date])
   db.execute("delete from rides where not fixed and (groupID, date) = (?,?)", [groupID, date])
   if not in_holidays(date):

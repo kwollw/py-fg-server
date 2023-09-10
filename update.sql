@@ -1,7 +1,4 @@
-BEGIN TRANSACTION;
-
 INSERT INTO "groups" VALUES ('PUS','Kiel - Eckernförde Schulzentrum');
-INSERT INTO "groups" VALUES ('HHG','Kiel - Hohenwestedt Schulen');
 
 UPDATE members
 	SET groupID = 'PUS';
@@ -42,5 +39,3 @@ UPDATE members
 UPDATE members
   SET active = false
   WHERE active = 'false';
-
-COMMIT

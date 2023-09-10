@@ -1,4 +1,3 @@
-BEGIN TRANSACTION;
 CREATE TABLE  IF NOT EXISTS "groups" (
 	"groupID"	TEXT (5),
 	"description"	TEXT (30)
@@ -64,5 +63,3 @@ from drives
 UNION
 select date, groupID, rider as user
 from rides;
-
-COMMIT;
