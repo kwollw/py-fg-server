@@ -100,8 +100,14 @@ def add_request():
   return json.dumps({'message': 'success', 'data': result})
 
 @route('/api/register', method='POST')
-def add_request():
+def register():
   result = db.register(request.json)
+  response.content_type = 'application/json'
+  return json.dumps({'message': 'success', 'data': result})
+
+@route('/api/setup', method='POST')
+def update_user():
+  result = db.update_user(request.json)
   response.content_type = 'application/json'
   return json.dumps({'message': 'success', 'data': result})
 
