@@ -146,14 +146,14 @@ def register(d):
 
 def update_user(u):
   print(u)
-  if(u['passwordChange']):
+  if(u['changePassword']):
     print('change password...')
     password_hash = hashlib.sha1((u['password'] + salt).encode()).hexdigest()
     db.execute("UPDATE members SET password_sha1 = ? WHERE (user,groupID) =(?,?)"[u['user'], u['groupID'], password_hash])
-  if(u['noCar']): 
-    db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate,) VALUES (?, ?, ?, ?, '', '', '') WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['user'], u['groupID']])
+  if(u['car']['noCar']): 
+    db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate) = (?, ?, ?, ?, '', '', '') WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['user'], u['groupID']])
   else:
-    db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate,) VALUES (?, ?, ?, ?, ?, ?, ?) WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['cartype'], u['color'], u['id'], u['user'], u['groupID']])
+    db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate) = (?, ?, ?, ?, ?, ?, ?) WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['cartype'], u['color'], u['id'], u['user'], u['groupID']])
   print('update executed.')
 
 def next_drive(groupID, user):
