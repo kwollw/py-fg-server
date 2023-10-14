@@ -31,7 +31,6 @@ UPDATE rides
 	SET fixed = false
 WHERE fixed = 'false';
 
-
 UPDATE members
   SET active = true
   WHERE active = 'true';

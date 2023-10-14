@@ -1,7 +1,13 @@
-CREATE TABLE  IF NOT EXISTS "groups" (
+CREATE TABLE IF NOT EXISTS "groups" (
 	"groupID"	TEXT (5),
 	"description"	TEXT (30)
 );
+
+CREATE TABLE IF NOT EXISTS "schedule_head" (
+	"groupID"	TEXT(5),
+	"date"    TEXT(10)
+);
+
 
 ALTER TABLE drives
 	ADD "groupID"	TEXT(5);
@@ -12,12 +18,12 @@ ALTER TABLE exceptions
 ALTER TABLE requests
 	ADD "groupID"	TEXT(5);
 
-
 ALTER TABLE rides
 	ADD "groupID"	TEXT(5);
 
+
 DROP VIEW drives_count;
-CREATE VIEW drives_count AS SELECT groupID, Driver user, count() drives_count FROM rides where fixed = 'true' GROUP BY groupID, Driver;
+CREATE VIEW drives_count AS SELECT groupID, Driver user, count() drives_count FROM rides where fixed = true GROUP BY groupID, Driver;
 
 DROP VIEW exceptions_view;
 CREATE VIEW exceptions_view AS select a.*, rides_count, passengers_count 
