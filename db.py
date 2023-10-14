@@ -51,14 +51,13 @@ def delete_requests(requests):
   for req in requests['selectedReqs']:
     db.execute("DELETE FROM requests WHERE requestID = ?", [req['requestID']]) 
     # all weekdays like deleted request
-    db.execute("DELETE FROM schedule_head WHERE groupID = rec['groupID'] AND strftime('%w',date) = strftime('%w',rec['date'])")
+    db.execute("DELETE FROM schedule_head WHERE groupID = ? AND strftime('%w',date) = strftime('%w',?)",[req['groupID'],req['date']])
   for exc in requests['selectedExcs']:
     db.execute("DELETE FROM exceptions WHERE exceptionID = ?", [exc['exceptionID']])
     update_schedules(exc['groupID'], exc['date'])
   db.commit()
 
 def add_request(request):
-  print(request)
   if request['driverStatus'] =='M':
     request['timeToMaxDelay'] = 300
     request['timeFroMaxDelay'] = 300
@@ -83,11 +82,9 @@ def active_requests(groupID, date):
 
 def next_monday():
   nm = db_select('select date(datetime("now", "localtime", "+36 hours"), "weekday 1") as date',[])[0]['date']
-  print('next_monday: ', nm)
   return nm
 
 def head(groupID, date):
-  print('head of ', groupID, date)
   dow = db_select('SELECT strftime("%w", ?) as dow',[date])[0]['dow']
   h = db_select('SELECT date FROM schedule_head where groupID = ? and strftime("%w",date) = strftime("%w",?)',[groupID, date])
   if len(h) == 0:
@@ -98,7 +95,6 @@ def head(groupID, date):
 # update schedule for specific date
 def update_schedule(groupID, date):
   if date >= next_monday(): 
-    print ('update_schedule:', groupID, date)
     db.execute("delete from drives where (groupID, date) = (?,?)", [groupID, date])
     db.execute("delete from rides where (groupID, date) = (?,?)", [groupID, date])
     if not in_holidays(date):
@@ -115,7 +111,6 @@ def update_schedule(groupID, date):
 def update_schedules(groupID, date):
   h = head(groupID, date)
   h = db_select('SELECT date(?,"+7 days") as date',[h])[0]['date']
-  print('next h: ', h)
   while h < date:
     update_schedule(groupID, h)
     h = db_select('SELECT date(?,"+7 days") as date',[h])[0]['date']
@@ -130,7 +125,6 @@ def schedule(groupID, date):
   return schedule
 
 def hop_on(groupID, user, date, dir, driver):
-  print("hop_on", groupID, user, date, dir, driver)
   if dir == "to":
     old_ride = db_select("select time from rides natural join drives d where time_to = time and (date, rider) = (?,?)", [date, user])
     new_ride = db_select("select time_to as time from drives where (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
@@ -138,27 +132,20 @@ def hop_on(groupID, user, date, dir, driver):
     old_ride = db_select("select time from rides natural join drives d where time_fro = time and (date, rider) = (?,?)", [date, user])
     new_ride = db_select("select time_fro as time from drives where (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
   # delete old ride if exists:
-  print("old_ride",old_ride)
-
   if len(old_ride)>0:
     hop_off(groupID, user, date, old_ride[0]['time'])
   # add new ride:
-  print(new_ride)
   if len(new_ride)>0:
     db.execute("insert into rides (groupID, date, time, driver, rider, fixed) values(?,?,?,?,?,true)" , [groupID, date, new_ride[0]['time'], driver, user])
   db.commit()
-  print('hop_on executed.')
   return schedule(groupID, date)
 
 def hop_off(groupID, user, date, time):
-  print ("hop_off", groupID, user, date, time)
   db.execute("delete from rides where (groupID, rider, date, time) = (?,?,?,?)" , [groupID, user, date, time])
-  print('hop_off executed.')
   db.commit()
   return schedule(groupID, date)
 
 def register(d):
-  print(d)
   password_hash = hashlib.sha1((d['password'] + salt).encode()).hexdigest()
   c = d['car']
   if(c['noCar']): 
@@ -166,21 +153,16 @@ def register(d):
   else:
     db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, car, color, licenceplate, max_passengers, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobil'], d['mail'], c['cartype'], c['color'], c['id'], c['rides']])
   db.commit()
-  print('insert executed.')
 
 def update_user(u):
-  print(u)
   if(u['changePassword']):
-    print('change password...')
     password_hash = hashlib.sha1((u['password'] + salt).encode()).hexdigest()
     db.execute("UPDATE members SET password_sha1 = ? WHERE (user,groupID) =(?,?)"[u['user'], u['groupID'], password_hash])
   if(u['car']['noCar']): 
     db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate) = (?, ?, ?, ?, '', '', '') WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['user'], u['groupID']])
   else:
     db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate) = (?, ?, ?, ?, ?, ?, ?) WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['cartype'], u['color'], u['id'], u['user'], u['groupID']])
-  print('update executed.')
 
 def next_drive(groupID, user):
-  print(groupID, user)
   result = db_select("select groupID, user, min(date) as next_drive from drive_dates where date >= date('now') and (groupID, user) = (?,?) group by groupID, user", [groupID, user])
   return (result[0])
