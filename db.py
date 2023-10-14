@@ -149,9 +149,9 @@ def register(d):
   password_hash = hashlib.sha1((d['password'] + salt).encode()).hexdigest()
   c = d['car']
   if(c['noCar']): 
-    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobil'], d['mail']])
+    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobile'], d['mail']])
   else:
-    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, car, color, licenceplate, max_passengers, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobil'], d['mail'], c['cartype'], c['color'], c['id'], c['rides']])
+    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, car, color, licenceplate, max_passengers, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobile'], d['mail'], c['cartype'], c['color'], c['id'], c['rides']])
   db.commit()
 
 def update_user(u):
