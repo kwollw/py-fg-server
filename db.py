@@ -122,7 +122,7 @@ def schedule(groupID, date):
   if in_holidays(date) or date > head(groupID, date):
     update_schedules(groupID, date)
   schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
-  return schedule
+  return {"Ferien": in_holidays(date), "drives": schedule}
 
 def hop_on(groupID, user, date, dir, driver):
   if dir == "to":
