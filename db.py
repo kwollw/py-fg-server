@@ -145,14 +145,12 @@ def register(d):
   db.commit()
 
 def update_user(u):
+  print(u)
   if(u['changePassword']):
     password_hash = hashlib.sha1((u['password'] + salt).encode()).hexdigest()
-    db.execute("UPDATE members SET password_sha1 = ? WHERE (user,groupID) =(?,?)"[u['user'], u['groupID'], password_hash])
-  if(u['car']['noCar']): 
-    db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate) = (?, ?, ?, ?, '', '', '') WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['user'], u['groupID']])
-  else:
-    db.execute("UPDATE members SET (name, sirname, mobile, mail, car, color, licenceplate) = (?, ?, ?, ?, ?, ?, ?) WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['cartype'], u['color'], u['id'], u['user'], u['groupID']])
-
+    db.execute("UPDATE members SET password_sha1 = ? WHERE (user,groupID) =(?,?)", [password_hash, u['user'], u['groupID']])
+  db.execute("UPDATE members SET (name, sirname, mobile, mail) = (?, ?, ?, ?) WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['user'], u['groupID']])
+ 
 def next_drive(groupID, user):
   result = db_select("select groupID, user, min(date) as next_drive from drive_dates where date >= date('now') and (groupID, user) = (?,?) group by groupID, user", [groupID, user])
   return (result[0])
