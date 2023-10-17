@@ -20,13 +20,6 @@ def getlogin(user, password):
     del user["password_sha1"]
   return user
 
-def is_uniq_user(groupID, user):
-  if groupID and groupID != '':
-    result = db_select('select * from members where (groupID, user) = (?,?)',[groupID, user])
-  else:
-    result = db_select('select * from members where user = ?',[user])
-  return len(result) == 0
-
 def groups():
   groups = db_select('select * from groups',[])
   return sorted(groups, key=lambda d: d['description']) 
@@ -146,12 +139,9 @@ def hop_off(groupID, user, date, time):
   return schedule(groupID, date)
 
 def register(d):
+  print(d)
   password_hash = hashlib.sha1((d['password'] + salt).encode()).hexdigest()
-  c = d['car']
-  if(c['noCar']): 
-    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobile'], d['mail']])
-  else:
-    db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, car, color, licenceplate, max_passengers, drives_count, passengers_count, rides_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobile'], d['mail'], c['cartype'], c['color'], c['id'], c['rides']])
+  db.execute("INSERT INTO members (user, groupID, password_sha1, name, sirname, mobile, mail, drives_count, passengers_count, rides_count, active) VALUES (upper(?), ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupID'], password_hash, d['name'], d['sirname'], d['mobile'], d['mail']])
   db.commit()
 
 def update_user(u):

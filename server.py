@@ -48,14 +48,6 @@ def users():
   response.content_type = 'application/json'
   return json.dumps(userlist)
 
-@route('/api/is_uniq_user', method='GET')
-def is_uniq_user():  
-  groupID = request.params.groupID
-  user = request.params.user
-  uniq = db.is_uniq_user(groupID, user)
-  response.content_type = 'application/json'
-  return json.dumps(uniq)
-
 @route('/api/requests', method='GET')
 def requests():
   groupID = request.params.groupID
