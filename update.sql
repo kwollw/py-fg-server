@@ -1,7 +1,7 @@
 INSERT INTO "groups" VALUES ('PUS','Kiel - Eckernförde Schulzentrum');
 
 UPDATE members
-	SET groupID = 'PUS';
+	SET groupid = 'PUS';
 
 UPDATE members
   SET active = true
@@ -12,13 +12,13 @@ UPDATE members
   WHERE active = 'false';
 
 UPDATE requests
-	SET groupID = 'PUS';
+	SET groupid = 'PUS';
 
 UPDATE exceptions
-	SET groupID = 'PUS';
+	SET groupid = 'PUS';
 
 UPDATE drives
-	SET groupID = 'PUS';
+	SET groupid = 'PUS';
 
 UPDATE drives
 	SET fixed = true
@@ -29,7 +29,7 @@ UPDATE drives
 WHERE fixed = 'false';
 
 UPDATE rides
-	SET groupID = 'PUS';
+	SET groupid = 'PUS';
 
 UPDATE rides
 	SET fixed = true

@@ -87,14 +87,11 @@ def next_monday():
   return nm
 
 def head(groupid, date):
-  print('head: ',groupid,date)
   dow = db_select('SELECT strftime("%w", ?) AS dow',[date])[0]['dow']
-  print('dow: ', dow)
   h = db_select('SELECT date FROM schedule_head WHERE groupid = ? AND strftime("%w",date) = strftime("%w",?)',[groupid, date])
   if len(h) == 0:
     db.execute('INSERT INTO schedule_head ("groupid", "date") VALUES (?, date("now", "weekday " || ?))',[groupid, dow])
     h = db_select('SELECT date FROM schedule_head WHERE groupid = ? AND strftime("%w",date) = strftime("%w",?)',[groupid, date])
-  print('h:', h)
   return h[0]['date']
 
 # update schedule for specific date
