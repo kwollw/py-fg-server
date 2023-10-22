@@ -12,7 +12,7 @@ def db_select(query, params):
   return [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
 
 def getlogin(user, password):
-  password_hash = hashlib.sha1((password + salt).encode(WHERE)).hexdigest()
+  password_hash = hashlib.sha1((password + salt).encode()).hexdigest()
   result = db_select('SELECT * FROM members WHERE (user LIKE ? OR mail LIKE ?) AND password_sha1 = ?',[user, user, password_hash])
   user = {}
   if len(result) == 1:
