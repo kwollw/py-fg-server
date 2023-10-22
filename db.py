@@ -32,11 +32,13 @@ def in_holidays(date):
   return (len(result) > 0)
 
 def update_member_counts():
-  sql = "UPDATE members SET passengers_count = passengers_count + (SELECT drives_count FROM drives_count WHERE members.user = drives_count.user)"
-  sql = "UPDATE members SET rides_count = rides_count + (SELECT rides_count FROM rides_count WHERE members.user = rides_count.user)"
-  sql = "UPDATE members SET drives_count = drives_count + (SELECT drives FROM total_drives WHERE members.user = total_drives.user)"
-  sql = "DELETE FROM rides WHERE date < date(datetime('now'))"
-  sql = "DELETE FROM drives WHERE date < date(datetime('now'))"
+  c = db_select("SELECT * FROM drives WHERE date < date(datetime('now'))")
+  if len(c) > 0:
+    db.execute("UPDATE members SET passengers_count = passengers_count + (SELECT drives_count FROM drives_count WHERE (members.user, members.groupid) = (drives_count.user, drives_count.groupid))")
+    db.execute("UPDATE members SET rides_count = rides_count + (SELECT rides_count FROM rides_count WHERE (members.user, members.groupid) = (rides_count.user, rides_count.groupid))")
+    db.execute("UPDATE members SET drives_count = drives_count + (SELECT drives FROM total_drives WHERE (members.user, members.groupid) = (total_drives.user, total_drives.groupid))")
+    db.execute("DELETE FROM rides WHERE date < date(datetime('now'))")
+    db.execute("DELETE FROM drives WHERE date < date(datetime('now'))")
   
 def requests(groupID, user):
   requests = db_select("SELECT * FROM requests WHERE (groupID, user) = (?,?)",[groupID, user])
@@ -98,6 +100,7 @@ def update_schedule(groupID, date):
     db.execute("DELETE FROM drives WHERE (groupID, date) = (?,?)", [groupID, date])
     db.execute("DELETE FROM rides WHERE (groupID, date) = (?,?)", [groupID, date])
     if not in_holidays(date):
+      update_member_counts()
       drives = z3.schedule(groupID, date)
       for d in drives:
         db.execute( "INSERT INTO drives (fixed, groupID, Date, Driver, max_passengers_to, max_passengers_fro, time_to, time_fro) VALUES (false,?,date(?),?,?,?,?,?)", [groupID, d['date'], d['user'], d['max_passengers_to'], d['max_passengers_fro'], d['time_to'], d['time_fro'] ])

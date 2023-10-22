@@ -28,9 +28,6 @@ UPDATE drives
 	SET fixed = false
 WHERE fixed = 'false';
 
-DELETE FROM drives
-WHERE date < date(datetime('now'));
-
 UPDATE rides
 	SET groupID = 'PUS';
 
@@ -41,6 +38,3 @@ WHERE fixed = 'true';
 UPDATE rides
 	SET fixed = false
 WHERE fixed = 'false';
-
-DELETE FROM rides
-WHERE date < date(datetime('now'));

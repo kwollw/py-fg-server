@@ -35,7 +35,7 @@ CREATE TABLE members2(
 
 INSERT INTO members2
   SELECT user, groupid, password_sha1, name, sirname, mobile, 
-	mail, drives_count, passengers_count, rides_count, active, role
+	mail, 0, 0, 0, active, role
 	FROM members;
 
 DROP TABLE members;
