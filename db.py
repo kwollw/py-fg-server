@@ -12,8 +12,8 @@ def db_select(query, params):
   return [dict((cur.description[i][0], value) for i, value in enumerate(row)) for row in cur.fetchall()]
 
 def getlogin(user, password):
-  password_hash = hashlib.sha1((password + salt).encode()).hexdigest()
-  result = db_select('select * from members where (user like ? or mail like ?) and password_sha1 = ?',[user, user, password_hash])
+  password_hash = hashlib.sha1((password + salt).encode(WHERE)).hexdigest()
+  result = db_select('SELECT * FROM members WHERE (user LIKE ? OR mail LIKE ?) AND password_sha1 = ?',[user, user, password_hash])
   user = {}
   if len(result) == 1:
     user = result[0]
@@ -21,16 +21,23 @@ def getlogin(user, password):
   return user
 
 def groups():
-  groups = db_select('select * from groups',[])
+  groups = db_select('SELECT * FROM groups',[])
   return sorted(groups, key=lambda d: d['description']) 
 
 def active_users(groupID):
-  return db_select('select * from members where active = true and groupID = ? order by sirname',[groupID])
+  return db_select('SELECT * FROM members WHERE active = true AND groupid = ? ORDER BY sirname',[groupID])
   
 def in_holidays(date):
-  result = db_select('select * from holidays where date_from <= ? and date_to >= ?;', [date, date])
+  result = db_select('SELECT * FROM holidays WHERE date_from <= ? AND date_to >= ?;', [date, date])
   return (len(result) > 0)
 
+def update_member_counts():
+  sql = "UPDATE members SET passengers_count = passengers_count + (SELECT drives_count FROM drives_count WHERE members.user = drives_count.user)"
+  sql = "UPDATE members SET rides_count = rides_count + (SELECT rides_count FROM rides_count WHERE members.user = rides_count.user)"
+  sql = "UPDATE members SET drives_count = drives_count + (SELECT drives FROM total_drives WHERE members.user = total_drives.user)"
+  sql = "DELETE FROM rides WHERE date < date(datetime('now'))"
+  sql = "DELETE FROM drives WHERE date < date(datetime('now'))"
+  
 def requests(groupID, user):
   requests = db_select("SELECT * FROM requests WHERE (groupID, user) = (?,?)",[groupID, user])
   return sorted(requests, key=lambda d: d['date']) 
@@ -55,8 +62,8 @@ def add_request(request):
     request['timeToMaxDelay'] = 300
     request['timeFroMaxDelay'] = 300
   if request['weeklyRepeat']:
-    db.execute("delete from drives where groupID = ? and date > ? and strftime('%w',date) = strftime('%w',?)", [request['groupID'], request['date'], request['date']])
-    db.execute("delete from rides where groupID = ? and date > ? and strftime('%w',date) = strftime('%w',?)", [request['groupID'], request['date'], request['date']])
+    db.execute("DELETE FROM drives WHERE groupID = ? AND date > ? AND strftime('%w',date) = strftime('%w',?)", [request['groupID'], request['date'], request['date']])
+    db.execute("DELETE FROM rides WHERE groupID = ? AND date > ? AND strftime('%w',date) = strftime('%w',?)", [request['groupID'], request['date'], request['date']])
     db.execute("DELETE FROM requests WHERE (groupID, user, date) = (?,?,?)",[request['groupID'],request['user'],request['date']])
     db.execute("INSERT INTO requests (groupID, user, date, driver_status, time_to, time_to_max_delay, max_passengers_to, time_fro, time_fro_max_delay, max_passengers_fro) VALUES (?,?,?,?,?,?,?,?,?,?)",[request['groupID'], request['user'], request['date'],request['driverStatus'],request['timeTo'],request['timeToMaxDelay'],request['maxPassengersTo'],request['timeFro'],request['timeFroMaxDelay'],request['maxPassengersFro']])
   else:
@@ -68,28 +75,28 @@ def add_request(request):
 def active_requests(groupID, date):
   requests = []
   if (not in_holidays(date)):
-    requests = db_select ('select * from requests_view where (groupID, user, date) in (select ?, user, max(date) from requests where date <= ? and strftime("%w",date) = strftime("%w",?) group by groupID, user having (groupID, user) not in (select groupID, user from exceptions where date = date(?))) union select * from exceptions_view where date = date(?) and driver_status != 0;',[groupID, date, date, date, date])
+    requests = db_select ('SELECT * FROM requests_view WHERE (groupID, user, date) in (SELECT ?, user, max(date) FROM requests WHERE date <= ? AND strftime("%w",date) = strftime("%w",?) group by groupID, user having (groupID, user) not in (SELECT groupID, user FROM exceptions WHERE date = date(?))) union SELECT * FROM exceptions_view WHERE date = date(?) AND driver_status != 0;',[groupID, date, date, date, date])
     for d in requests:
       d["date"] = date
   return requests
 
 def next_monday():
-  nm = db_select('select date(datetime("now", "localtime", "+36 hours"), "weekday 1") as date',[])[0]['date']
+  nm = db_select('SELECT date(datetime("now", "localtime", "+36 hours"), "weekday 1") AS date',[])[0]['date']
   return nm
 
 def head(groupID, date):
-  dow = db_select('SELECT strftime("%w", ?) as dow',[date])[0]['dow']
-  h = db_select('SELECT date FROM schedule_head where groupID = ? and strftime("%w",date) = strftime("%w",?)',[groupID, date])
+  dow = db_select('SELECT strftime("%w", ?) AS dow',[date])[0]['dow']
+  h = db_select('SELECT date FROM schedule_head WHERE groupID = ? AND strftime("%w",date) = strftime("%w",?)',[groupID, date])
   if len(h) == 0:
     db.execute('INSERT INTO schedule_head ("groupID", "date") VALUES (?, date("now", "weekday " || ?))',[groupID, dow])
-    h = db_select('SELECT date FROM schedule_head where groupID = ? and strftime("%w",date) = strftime("%w",?)',[groupID, date])
+    h = db_select('SELECT date FROM schedule_head WHERE groupID = ? AND strftime("%w",date) = strftime("%w",?)',[groupID, date])
   return h[0]['date']
 
 # update schedule for specific date
 def update_schedule(groupID, date):
   if date >= next_monday(): 
-    db.execute("delete from drives where (groupID, date) = (?,?)", [groupID, date])
-    db.execute("delete from rides where (groupID, date) = (?,?)", [groupID, date])
+    db.execute("DELETE FROM drives WHERE (groupID, date) = (?,?)", [groupID, date])
+    db.execute("DELETE FROM rides WHERE (groupID, date) = (?,?)", [groupID, date])
     if not in_holidays(date):
       drives = z3.schedule(groupID, date)
       for d in drives:
@@ -103,38 +110,38 @@ def update_schedule(groupID, date):
 # update all schedules from head to date for specific weekday
 def update_schedules(groupID, date):
   h = head(groupID, date)
-  h = db_select('SELECT date(?,"+7 days") as date',[h])[0]['date']
+  h = db_select('SELECT date(?,"+7 days") AS date',[h])[0]['date']
   while h < date:
     update_schedule(groupID, h)
-    h = db_select('SELECT date(?,"+7 days") as date',[h])[0]['date']
+    h = db_select('SELECT date(?,"+7 days") AS date',[h])[0]['date']
   update_schedule(groupID, date)
-  db.execute('UPDATE schedule_head SET date = ? WHERE groupID = ? and strftime("%w",date) = strftime("%w",?)',[date, groupID, date])
+  db.execute('UPDATE schedule_head SET date = ? WHERE groupID = ? AND strftime("%w",date) = strftime("%w",?)',[date, groupID, date])
   db.commit()
   
 def schedule(groupID, date):
   if in_holidays(date) or date > head(groupID, date):
     update_schedules(groupID, date)
-  schedule = db_select("select * from schedule where (groupID, date) = (?,?)", [groupID, date])
+  schedule = db_select("SELECT * FROM schedule WHERE (groupID, date) = (?,?)", [groupID, date])
   return {"Ferien": in_holidays(date), "drives": schedule}
 
 def hop_on(groupID, user, date, dir, driver):
   if dir == "to":
-    old_ride = db_select("select time from rides natural join drives d where time_to = time and (date, rider) = (?,?)", [date, user])
-    new_ride = db_select("select time_to as time from drives where (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
+    old_ride = db_select("select time FROM rides NATURAL JOIN drives d WHERE time_to = time AND (date, rider) = (?,?)", [date, user])
+    new_ride = db_select("select time_to AS time FROM drives WHERE (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
   else:
-    old_ride = db_select("select time from rides natural join drives d where time_fro = time and (date, rider) = (?,?)", [date, user])
-    new_ride = db_select("select time_fro as time from drives where (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
+    old_ride = db_select("select time FROM rides NATURAL JOIN drives d WHERE time_fro = time AND (date, rider) = (?,?)", [date, user])
+    new_ride = db_select("select time_fro AS time FROM drives WHERE (groupID, date, driver) = (?,?,?)", [groupID, date, driver])
   # delete old ride if exists:
   if len(old_ride)>0:
     hop_off(groupID, user, date, old_ride[0]['time'])
   # add new ride:
   if len(new_ride)>0:
-    db.execute("insert into rides (groupID, date, time, driver, rider, fixed) values(?,?,?,?,?,true)" , [groupID, date, new_ride[0]['time'], driver, user])
+    db.execute("INSERT INTO rides (groupid, date, time, driver, rider, fixed) VALUES(?,?,?,?,?,true)" , [groupID, date, new_ride[0]['time'], driver, user])
   db.commit()
   return schedule(groupID, date)
 
 def hop_off(groupID, user, date, time):
-  db.execute("delete from rides where (groupID, rider, date, time) = (?,?,?,?)" , [groupID, user, date, time])
+  db.execute("DELETE FROM rides WHERE (groupID, rider, date, time) = (?,?,?,?)" , [groupID, user, date, time])
   db.commit()
   return schedule(groupID, date)
 
@@ -152,5 +159,5 @@ def update_user(u):
   db.execute("UPDATE members SET (name, sirname, mobile, mail) = (?, ?, ?, ?) WHERE (user,groupID) =(?,?)", [u['name'], u['sirname'], u['mobile'], u['mail'], u['user'], u['groupID']])
  
 def next_drive(groupID, user):
-  result = db_select("select groupID, user, min(date) as next_drive from drive_dates where date >= date('now') and (groupID, user) = (?,?) group by groupID, user", [groupID, user])
+  result = db_select("SELECT groupid, user, MIN(date) AS next_drive FROM drive_dates WHERE date >= DATE('now') AND (groupID, user) = (?,?) GROUP BY groupID, user", [groupID, user])
   return (result[0])
