@@ -36,52 +36,52 @@ def groups():
 
 @route('/api/next_drive', method='GET')
 def next_drive():  
-  groupID = request.params.groupID
+  groupid= request.params.groupid
   user = request.params.user
   response.content_type = 'application/json'
-  return json.dumps(db.next_drive(groupID, user))
+  return json.dumps(db.next_drive(groupid, user))
 
 @route('/api/users', method='GET')
 def users():  
-  groupID = request.params.groupID
-  userlist = db.active_users(groupID)
+  groupid= request.params.groupid
+  userlist = db.active_users(groupid)
   response.content_type = 'application/json'
   return json.dumps(userlist)
 
 @route('/api/requests', method='GET')
 def requests():
-  groupID = request.params.groupID
+  groupid= request.params.groupid
   user = request.params.user
-  requests = db.requests(groupID, user)
-  exceptions = db.exceptions(groupID, user)
+  requests = db.requests(groupid, user)
+  exceptions = db.exceptions(groupid, user)
   return json.dumps({'requests': requests, 'exceptions': exceptions})
 
 @route('/api/hop_on', method='POST')
 def hop_on():
-  groupID = request.json.get('groupID')
+  groupid= request.json.get('groupid')
   date = request.json.get('date')
   user = request.json.get('user')
   date = request.json.get('date')
   dir = request.json.get('dir')
   driver = request.json.get('driver')
-  result = db.hop_on(groupID, user, date, dir, driver)
+  result = db.hop_on(groupid, user, date, dir, driver)
   return json.dumps({'result': result})
 
 @route('/api/hop_off', method='POST')
 def hop_off():
-  groupID = request.json.get('groupID')
+  groupid= request.json.get('groupid')
   date = request.json.get('date')
   user = request.json.get('user')
   date = request.json.get('date')
   time = request.json.get('time')
-  result = db.hop_off(groupID, user, date, time)
+  result = db.hop_off(groupid, user, date, time)
   return json.dumps({'result': result})
 
 @route('/api/schedule', method='POST')
 def schedule():
-  groupID = request.json.get('groupID')
+  groupid= request.json.get('groupid')
   date = request.json.get('date')
-  result = db.schedule(groupID, date)
+  result = db.schedule(groupid, date)
   response.content_type = 'application/json'
   return json.dumps(result)
 
