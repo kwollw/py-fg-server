@@ -28,6 +28,13 @@ def authenticate():
   else:
     return json.dumps({ "message":"failed"})
 
+# not accessable from outside, only called locally by cron
+@route('/finalize_next_week', method='GET')
+def finalize_next_week(): 
+  print ('finalize called.') 
+  db.finalize_next_week()
+  return 'done.'
+
 @route('/api/groups', method='GET')
 def groups():  
   groups = db.groups()

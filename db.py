@@ -3,6 +3,7 @@ import sqlite3
 import hashlib
 from config import salt
 import z3solver as z3
+from datetime import datetime, timedelta
 
 db = sqlite3.connect('fahrplan.sqlite3')
 # db.row_factory = sqlite3.Row
@@ -39,6 +40,7 @@ def update_member_counts():
     db.execute("UPDATE members SET drives_count = drives_count + (SELECT drives FROM total_drives WHERE (members.user, members.groupid) = (total_drives.user, total_drives.groupid))")
     db.execute("DELETE FROM rides WHERE date < date(datetime('now'))")
     db.execute("DELETE FROM drives WHERE date < date(datetime('now'))")
+    db.commit()
   
 def requests(groupid, user):
   requests = db_select("SELECT * FROM requests WHERE (groupid, user) = (?,?)",[groupid, user])
@@ -86,6 +88,18 @@ def next_monday():
   nm = db_select('SELECT date(datetime("now", "localtime", "+36 hours"), "weekday 1") AS date',[])[0]['date']
   return nm
 
+def next_week():
+  x = datetime.strptime(next_monday(), '%Y-%m-%d')
+  week = []
+  for i in range(5):
+    week.append(x)
+    x += timedelta(days=1)
+  return list(map(lambda x: x.strftime('%Y-%m-%d'),week))
+
+def all_groups():
+  groups = db_select('select groupid from groups',[])
+  return list(map(lambda x: x['groupid'],groups))
+
 def head(groupid, date):
   dow = db_select('SELECT strftime("%w", ?) AS dow',[date])[0]['dow']
   h = db_select('SELECT date FROM schedule_head WHERE groupid = ? AND strftime("%w",date) = strftime("%w",?)',[groupid, date])
@@ -100,7 +114,6 @@ def update_schedule(groupid, date):
     db.execute("DELETE FROM drives WHERE (groupid, date) = (?,?)", [groupid, date])
     db.execute("DELETE FROM rides WHERE (groupid, date) = (?,?)", [groupid, date])
     if not in_holidays(date):
-      update_member_counts()
       drives = z3.schedule(groupid, date)
       for d in drives:
         db.execute( "INSERT INTO drives (fixed, groupid, Date, Driver, max_passengers_to, max_passengers_fro, time_to, time_fro) VALUES (false,?,date(?),?,?,?,?,?)", [groupid, d['date'], d['user'], d['max_passengers_to'], d['max_passengers_fro'], d['time_to'], d['time_fro'] ])
@@ -121,6 +134,12 @@ def update_schedules(groupid, date):
   db.execute('UPDATE schedule_head SET date = ? WHERE groupid = ? AND strftime("%w",date) = strftime("%w",?)',[date, groupid, date])
   db.commit()
   
+def finalize_next_week():
+# todo: Final calculation of schedule for next week
+  for groupid in all_groups():
+    for date in next_week():
+      update_schedule(groupid, date)
+
 def schedule(groupid, date):
   if in_holidays(date) or date > head(groupid, date):
     update_schedules(groupid, date)
