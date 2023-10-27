@@ -135,7 +135,7 @@ def update_schedules(groupid, date):
   db.commit()
   
 def finalize_next_week():
-# todo: Final calculation of schedule for next week
+  update_member_counts()
   for groupid in all_groups():
     for date in next_week():
       update_schedule(groupid, date)
