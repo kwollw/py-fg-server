@@ -92,6 +92,14 @@ def schedule():
   response.content_type = 'application/json'
   return json.dumps(result)
 
+@route('/api/weekly_schedule', method='POST')
+def weekly_schedule():
+  groupid= request.json.get('groupid')
+  date = request.json.get('date')
+  result = db.weekly_schedule(groupid, date)
+  response.content_type = 'application/json'
+  return json.dumps(result)
+
 @route('/api/add_request', method='POST')
 def add_request():
   result = db.add_request(request.json)

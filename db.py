@@ -143,8 +143,16 @@ def finalize_next_week():
 def schedule(groupid, date):
   if in_holidays(date) or date > head(groupid, date):
     update_schedules(groupid, date)
-  schedule = db_select("SELECT * FROM schedule WHERE (groupid, date) = (?,?)", [groupid, date])
+  schedule = db_select("SELECT * FROM schedule WHERE (groupid, date) = (?,?) and time != '00:00'", [groupid, date])
   return {"Ferien": in_holidays(date), "drives": schedule}
+
+def weekly_schedule(groupid, date):
+  monday = db_select('SELECT date(?, "weekday 1") as date', [date])[0]['date']
+  if monday> date:
+    monday = db_select('SELECT date(?, "-7 days") as date', [monday])[0]['date']
+  friday = db_select('SELECT date(?, "+4 days") as date', [monday])[0]['date']
+  schedule = db_select("SELECT * FROM schedule WHERE groupid = ? and date >= ? and date <= ? and time != '00:00'", [groupid, monday, friday])
+  return schedule
 
 def hop_on(groupid, user, date, dir, driver):
   if dir == "to":
