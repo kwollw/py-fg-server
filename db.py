@@ -157,17 +157,17 @@ def schedule2(groupid, user, date):
     update_schedules(groupid, date)
   schedule = db_select("SELECT time, direction, driver, max_passengers, rider FROM schedule WHERE (groupid, date) = (?,?) and time != '00:00'", [groupid, date])
   myschedule = list(filter(lambda x: x['Driver'] == user or (x['rider'] and any(map(lambda s: s.strip() == user, x['rider'].split(',')))), schedule))
-  myto = list(filter(lambda x: x['direction'] == 'to', myschedule))[0]
-  myfro = list(filter(lambda x: x['direction'] == 'fro', myschedule))[0]
+  myto = list(filter(lambda x: x['direction'] == 'to', myschedule))
+  myfro = list(filter(lambda x: x['direction'] == 'fro', myschedule))
   other_schedule = list(filter(lambda x: x not in myschedule, schedule))
   otos = list(filter(lambda x: x['direction'] == 'to', other_schedule))
   ofros = list(filter(lambda x: x['direction'] == 'fro', other_schedule))
   return {"date": date, 
           "holiday": in_holidays(date), 
-          "myto": format_drive(myto),
-          "myfro": format_drive(myfro),
+          "myto": '' if len(myto) == 0 else format_drive(myto[0]),
+          "myfro": '' if len(myfro) == 0 else format_drive(myfro[0]),
           "otos": list(map(lambda d: format_drive(d),otos)),
-          "ofros": list(map(lambda d: format_drive(d),ofros)),
+          "ofros": list(map(lambda d: format_drive(d),ofros))
           }
 
 def hop_on(groupid, user, date, dir, driver):
