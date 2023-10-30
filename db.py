@@ -146,13 +146,29 @@ def schedule(groupid, date):
   schedule = db_select("SELECT * FROM schedule WHERE (groupid, date) = (?,?) and time != '00:00'", [groupid, date])
   return {"Ferien": in_holidays(date), "drives": schedule}
 
-def weekly_schedule(groupid, date):
-  monday = db_select('SELECT date(?, "weekday 1") as date', [date])[0]['date']
-  if monday> date:
-    monday = db_select('SELECT date(?, "-7 days") as date', [monday])[0]['date']
-  friday = db_select('SELECT date(?, "+4 days") as date', [monday])[0]['date']
-  schedule = db_select("SELECT * FROM schedule WHERE groupid = ? and date >= ? and date <= ? and time != '00:00'", [groupid, monday, friday])
-  return schedule
+def format_drive(d):
+  if d['rider'] != None:
+    return f"{d['time']} {d['Driver']} ({d['max_passengers']}) {d['rider']}" 
+  else:
+    return f"{d['time']} {d['Driver']} ({d['max_passengers']})" 
+
+def schedule2(groupid, user, date):
+  if in_holidays(date) or date > head(groupid, date):
+    update_schedules(groupid, date)
+  schedule = db_select("SELECT time, direction, driver, max_passengers, rider FROM schedule WHERE (groupid, date) = (?,?) and time != '00:00'", [groupid, date])
+  myschedule = list(filter(lambda x: x['Driver'] == user or (x['rider'] and any(map(lambda s: s.strip() == user, x['rider'].split(',')))), schedule))
+  myto = list(filter(lambda x: x['direction'] == 'to', myschedule))[0]
+  myfro = list(filter(lambda x: x['direction'] == 'fro', myschedule))[0]
+  other_schedule = list(filter(lambda x: x not in myschedule, schedule))
+  otos = list(filter(lambda x: x['direction'] == 'to', other_schedule))
+  ofros = list(filter(lambda x: x['direction'] == 'fro', other_schedule))
+  return {"date": date, 
+          "holiday": in_holidays(date), 
+          "myto": format_drive(myto),
+          "myfro": format_drive(myfro),
+          "otos": list(map(lambda d: format_drive(d),otos)),
+          "ofros": list(map(lambda d: format_drive(d),ofros)),
+          }
 
 def hop_on(groupid, user, date, dir, driver):
   if dir == "to":
