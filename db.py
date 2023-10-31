@@ -178,14 +178,12 @@ def next_days(date, n):
       x += timedelta(days=1)
     week.append(x)
     x += timedelta(days=1)
-  print(week)
   return list(map(lambda x: x.strftime('%Y-%m-%d'),week))
     
 def schedule_list(groupid, user, date):
   schedule_list = []
   for d in next_days(date, 5):
     schedule_list.append(schedule2(groupid, user, d))
-  print(schedule_list)
   return schedule_list
 
 def hop_on(groupid, user, date, dir, driver):
