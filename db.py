@@ -170,6 +170,24 @@ def schedule2(groupid, user, date):
           "ofros": list(map(lambda d: format_drive(d),ofros))
           }
 
+def next_days(date, n):
+  x = datetime.strptime(date, '%Y-%m-%d')
+  week = []
+  for i in range(n):
+    while x.weekday()>4:
+      x += timedelta(days=1)
+    week.append(x)
+    x += timedelta(days=1)
+  print(week)
+  return list(map(lambda x: x.strftime('%Y-%m-%d'),week))
+    
+def schedule_list(groupid, user, date):
+  schedule_list = []
+  for d in next_days(date, 5):
+    schedule_list.append(schedule2(groupid, user, d))
+  print(schedule_list)
+  return schedule_list
+
 def hop_on(groupid, user, date, dir, driver):
   if dir == "to":
     old_ride = db_select("select time FROM rides NATURAL JOIN drives d WHERE time_to = time AND (date, rider) = (?,?)", [date, user])

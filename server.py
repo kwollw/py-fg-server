@@ -92,12 +92,12 @@ def schedule():
   response.content_type = 'application/json'
   return json.dumps(result)
 
-@route('/api/schedule2', method='POST')
-def schedule2():
+@route('/api/schedule_list', method='POST')
+def schedule_list():
   groupid = request.json.get('groupid')
   user =  request.json.get('user')
   date = request.json.get('date')
-  result = db.schedule2(groupid, user, date)
+  result = db.schedule_list(groupid, user, date)
   response.content_type = 'application/json'
   return json.dumps(result)
 
