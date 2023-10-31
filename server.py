@@ -86,18 +86,20 @@ def hop_off():
 
 @route('/api/schedule', method='POST')
 def schedule():
-  groupid= request.json.get('groupid')
+  groupid = request.json.get('groupid')
   date = request.json.get('date')
   result = db.schedule(groupid, date)
   response.content_type = 'application/json'
   return json.dumps(result)
 
-@route('/api/weekly_schedule', method='POST')
-def weekly_schedule():
-  groupid= request.json.get('groupid')
+@route('/api/schedule2', method='POST')
+def schedule2():
+  groupid = request.json.get('groupid')
+  user =  request.json.get('user')
   date = request.json.get('date')
-  result = db.weekly_schedule(groupid, date)
+  result = db.schedule2(groupid, user, date)
   response.content_type = 'application/json'
+  print(result)
   return json.dumps(result)
 
 @route('/api/add_request', method='POST')
