@@ -192,13 +192,11 @@ def hop_off(groupid, user, date, time):
   return schedule(groupid, date)
 
 def register(d):
-  print(d)
   password_hash = hashlib.sha1((d['password'] + salt).encode()).hexdigest()
   db.execute("INSERT INTO members (user, groupid, password_sha1, name, sirname, mobile, mail, drives_count, passengers_count, rides_count, active) VALUES (upper(?), ?, ?, ?, ?, ?, ?, 0, 0, 0, true)", [d['user'], d['groupid'], password_hash, d['name'], d['sirname'], d['mobile'], d['mail']])
   db.commit()
 
 def update_user(u):
-  print(u)
   if(u['changePassword']):
     password_hash = hashlib.sha1((u['password'] + salt).encode()).hexdigest()
     db.execute("UPDATE members SET password_sha1 = ? WHERE (user,groupid) =(?,?)", [password_hash, u['user'], u['groupid']])

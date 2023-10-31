@@ -99,7 +99,6 @@ def schedule2():
   date = request.json.get('date')
   result = db.schedule2(groupid, user, date)
   response.content_type = 'application/json'
-  print(result)
   return json.dumps(result)
 
 @route('/api/add_request', method='POST')
