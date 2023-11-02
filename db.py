@@ -121,6 +121,8 @@ def update_schedule(groupid, date):
           db.execute("INSERT INTO rides (fixed, groupid, Date, time, Driver, Rider) VALUES (false, ?, date(?), ?, ?, ?)", [groupid, d['date'], d['time_to'], d['user'], rider])
         for rider in d['rides_fro']:
           db.execute("INSERT INTO rides (fixed, groupid, Date, time, Driver, Rider) VALUES (false, ?, date(?), ?, ?, ?)", [groupid, d['date'], d['time_fro'], d['user'], rider])
+      db.execute("DELETE FROM drives WHERE time_to == '00:00' AND time_fro == '00:00'")
+      db.execute("DELETE FROM rides WHERE time == '00:00'")
     db.commit()
 
 # update all schedules from head to date for specific weekday
