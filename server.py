@@ -16,7 +16,7 @@ app.install(cors_plugin('*'))
 
 # app.install(aud)
 
-@route('/api/users/authenticate', method='POST')
+@route('/api/authenticate', method='POST')
 def authenticate():  
   username = request.json.get('username')
   password = request.json.get('password')
@@ -31,7 +31,6 @@ def authenticate():
 # not accessable from outside, only called locally by cron
 @route('/finalize_next_week', method='GET')
 def finalize_next_week(): 
-  print ('finalize called.') 
   db.finalize_next_week()
   return 'done.'
 
