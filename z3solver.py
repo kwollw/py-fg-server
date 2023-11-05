@@ -19,6 +19,7 @@ def drive_costs(req):
 def schedule(groupid, date):
   req = db.active_requests(groupid, date)
   drive_cost = IntVector('drive_cost', len(req))
+  ride_cost = IntVector('ride_cost', len(req))
   time_to = IntVector('time_to', len(req))
   time_fro =  IntVector('time_fro', len(req))
   my_drive_to = IntVector('my_drive_to', len(req))
@@ -29,7 +30,7 @@ def schedule(groupid, date):
   opt.add([ drive_cost[i] == drive_costs(req[i]) for i in range(len(req)) if req[i]["driver_status"]=="F" ])
   opt.add([ drive_cost[i] == 0 for i in range(len(req)) if req[i]["driver_status"]=="M" ])
   opt.add([ (Or(drive_cost[i] == 0, drive_cost[i] == drive_costs(req[i]))) for i in range(len(req)) if req[i]["driver_status"]=="FM" ])
-
+  opt.add([ If(my_drive_to[i] != my_drive_fro[i], ride_cost[i] == 1, ride_cost[i] == 0) for i in range(len(req))])
   # Fahrtzeiten:
   opt.add([ time_to[i] == 0 for i in range(len(req)) if req[i]["time_to"] == "" ]) # keine Hinfahrt
   opt.add([ And(time_to[i]<= time_slot(req[i]['time_to']), time_to[i] >= time_slot(req[i]['time_to']) - req[i]['time_to_max_delay'] // 5) for i in range(len(req)) if req[i]["time_to"] != "" ])
@@ -53,7 +54,7 @@ def schedule(groupid, date):
     opt.add(Implies(drive_cost[driver] > 0, AtMost(*[my_drive_fro[rider] == driver for rider in range(len(req)) if rider != driver ],req[driver]['max_passengers_fro'] )))
   
   total_costs = Int('cost')
-  opt.add(total_costs == Sum(drive_cost) + Sum(time_fro) - Sum(time_to))
+  opt.add(total_costs == Sum(drive_cost) + Sum(ride_cost) + Sum(time_fro) - Sum(time_to))
   opt.minimize(total_costs)
   check = opt.check()
   drives = []
