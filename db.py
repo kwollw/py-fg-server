@@ -35,9 +35,9 @@ def in_holidays(date):
 def update_member_counts():
   c = db_select("SELECT * FROM drives WHERE date < date(datetime('now'))",[])
   if len(c) > 0:
-    db.execute("UPDATE members SET passengers_count = passengers_count + (SELECT drives_count FROM drives_count WHERE (members.user, members.groupid) = (drives_count.user, drives_count.groupid))")
-    db.execute("UPDATE members SET rides_count = rides_count + (SELECT rides_count FROM rides_count WHERE (members.user, members.groupid) = (rides_count.user, rides_count.groupid))")
-    db.execute("UPDATE members SET drives_count = drives_count + (SELECT drives FROM total_drives WHERE (members.user, members.groupid) = (total_drives.user, total_drives.groupid))")
+    db.execute("UPDATE members SET passengers_count = (passengers_count + drives_count.drives_count) FROM drives_count WHERE (members.user, members.groupid) = (drives_count.user, drives_count.groupid)")
+    db.execute("UPDATE members SET rides_count = (members.rides_count + rides_count.rides_count) FROM rides_count WHERE (members.user, members.groupid) = (rides_count.user, rides_count.groupid)")
+    db.execute("UPDATE members SET drives_count = drives_count + total_drives.drives FROM total_drives WHERE (members.user, members.groupid) = (total_drives.user, total_drives.groupid)")
     db.execute("DELETE FROM rides WHERE date < date(datetime('now'))")
     db.execute("DELETE FROM drives WHERE date < date(datetime('now'))")
     db.commit()

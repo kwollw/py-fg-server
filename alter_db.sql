@@ -65,7 +65,7 @@ where a.user = b.user AND a.groupid = b.groupid;
 
 CREATE VIEW drives_count AS SELECT groupid, driver user, count() drives_count FROM rides where date < date(datetime('now')) GROUP BY groupid, driver;
 
-CREATE VIEW rides_count AS SELECT groupid, rider user, count() rides_count FROM rides where date < date(datetime('now')) GROUP BY rider;
+CREATE VIEW rides_count AS SELECT groupid, rider user, count() rides_count FROM rides where date < date(datetime('now')) GROUP BY groupid, rider
 
 CREATE VIEW schedule as 
 select d.groupid, d.date, time_to time, 'to' direction, d.driver, d.max_passengers_to max_passengers, count(*) passengers, group_concat(rider, ', ') rider
@@ -88,7 +88,8 @@ from drives d left join rides r on (d.groupid = r.groupid and d.driver = r.drive
 where rider is NULL and time_fro <> ''
 group by d.groupid, d.date, time, direction, d.driver, max_passengers;
 
-CREATE VIEW total_drives AS SELECT groupid, driver user, count(*) drives FROM drives where fixed = true GROUP BY groupid, driver;
+
+CREATE VIEW total_drives AS SELECT groupid, driver user, count(*) drives FROM drives where date < date(datetime('now')) GROUP BY groupid, driver
 
 CREATE VIEW drive_dates as
 select date, groupid, driver as user
