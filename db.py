@@ -32,7 +32,7 @@ def in_holidays(date):
   result = db_select('SELECT * FROM holidays WHERE date_from <= ? AND date_to >= ?;', [date, date])
   return (len(result) > 0)
 
-def update_member_counts():
+def update_members():
   c = db_select("SELECT * FROM drives WHERE date < date(datetime('now'))",[])
   if len(c) > 0:
     db.execute("UPDATE members SET passengers_count = (passengers_count + drives_count.drives_count) FROM drives_count WHERE (members.user, members.groupid) = (drives_count.user, drives_count.groupid)")
@@ -40,6 +40,8 @@ def update_member_counts():
     db.execute("UPDATE members SET drives_count = drives_count + total_drives.drives FROM total_drives WHERE (members.user, members.groupid) = (total_drives.user, total_drives.groupid)")
     db.execute("DELETE FROM rides WHERE date < date(datetime('now'))")
     db.execute("DELETE FROM drives WHERE date < date(datetime('now'))")
+    db.execute("UPDATE members SET active = false")
+    db.execute("UPDATE members SET active = true where (groupid, user) in ( select groupid, user from requests )")
     db.commit()
   
 def requests(groupid, user):
@@ -137,7 +139,7 @@ def update_schedules(groupid, date):
   db.commit()
   
 def finalize_next_week():
-  update_member_counts()
+  update_members()
   for groupid in all_groups():
     for date in next_week():
       update_schedule(groupid, date)
