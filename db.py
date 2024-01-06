@@ -42,6 +42,7 @@ def update_members():
     db.execute("DELETE FROM drives WHERE date < date(datetime('now'))")
     db.execute("UPDATE members SET active = false")
     db.execute("UPDATE members SET active = true where (groupid, user) in ( select groupid, user from requests )")
+    db.execute("UPDATE members SET active = true where (groupid, user) in ( select groupid, user from exceptions )")
     db.commit()
   
 def requests(groupid, user):
@@ -64,6 +65,7 @@ def delete_requests(requests):
   db.commit()
 
 def add_request(request):
+  print("add request: ", request)
   if request['driverStatus'] =='M':
     request['timeToMaxDelay'] = 300
     request['timeFroMaxDelay'] = 300
