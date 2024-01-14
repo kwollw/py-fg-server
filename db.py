@@ -66,6 +66,7 @@ def delete_requests(requests):
 
 def add_request(request):
   print("add request: ", request)
+  db.execute("UPDATE members SET active = true where (groupid, user) = (?, ?)",[request['groupid'],request['user']])
   if request['driverStatus'] =='M':
     request['timeToMaxDelay'] = 300
     request['timeFroMaxDelay'] = 300
